@@ -232,6 +232,48 @@ export class DatabaseHeaderColumn extends SignalWatcher(
           }
         },
       });
+    } else if (propertyType === 'select' || propertyType === 'multiSelect') {
+      // Для select/multiSelect используем динамический список тегов
+      inputConfig = menu.dynamic(() => {
+        const options = column.data$.value?.options || [];
+        if (!Array.isArray(options) || options.length === 0) {
+          return [
+            menu.action({
+              name: 'No tags available',
+              select: () => {},
+            }),
+          ];
+        }
+
+        return options.map(
+          (option: { id: string; value: string; color: string }) => {
+            return menu.action({
+              name: option.value,
+              isSelected: currentDefaultValue === option.id,
+              prefix: html`
+                <div
+                  style="
+                  background-color: ${option.color};
+                  border-radius: 4px;
+                  padding: 2px 8px;
+                  color: white;
+                  font-size: 12px;
+                  margin-right: 4px;
+                "
+                >
+                  ${option.value}
+                </div>
+              `,
+              select: () => {
+                this.tableViewManager.columnSetDefaultValue(
+                  column.id,
+                  option.id
+                );
+              },
+            });
+          }
+        );
+      });
     } else {
       // Default to text input for other types
       inputConfig = menu.input({
@@ -252,13 +294,26 @@ export class DatabaseHeaderColumn extends SignalWatcher(
       options: {
         title: {
           text: `Default Value for ${column.name$.value}`,
+          onBack: () => {
+            // Возвращаемся к основному меню
+            this.popMenu();
+          },
         },
         items: [
           inputConfig,
           menu.action({
             name:
               currentDefaultValue !== undefined
-                ? `Current: ${String(currentDefaultValue)}`
+                ? `Current: ${String(
+                    propertyType === 'select' || propertyType === 'multiSelect'
+                      ? (Array.isArray(column.data$.value?.options)
+                          ? column.data$.value?.options.find(
+                              (opt: { id: string }) =>
+                                opt.id === currentDefaultValue
+                            )?.value
+                          : undefined) || currentDefaultValue
+                      : currentDefaultValue
+                  )}`
                 : 'No default value set',
             class: {
               'menu-item-info': true,

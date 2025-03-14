@@ -259,9 +259,44 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
    * @param value The default value to set
    */
   columnSetDefaultValue(columnId: string, value: unknown): void {
+    const property = this.propertyGet(columnId);
+    const propertyType = property.type$.value;
+    const propertyMeta = this.propertyMetaGet(propertyType);
+
+    if (!propertyMeta) return;
+    let validValue = value;
+
+    if (propertyType === 'number' && typeof value === 'string') {
+      const numValue = Number(value);
+      if (!isNaN(numValue)) {
+        validValue = numValue;
+      } else {
+        return;
+      }
+    }
+
+    if (
+      (propertyType === 'select' || propertyType === 'multiSelect') &&
+      typeof value === 'string'
+    ) {
+      const options = property.data$.value?.options || [];
+      if (Array.isArray(options)) {
+        const optionExists = options.some(
+          (option: { id: string; value: string }) =>
+            option.id === value || option.value === value
+        );
+
+        if (!optionExists) {
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+
     this.dataUpdate(data => {
       const defaultValues = data.defaultValues ?? {};
-      defaultValues[columnId] = value;
+      defaultValues[columnId] = validValue;
       return {
         defaultValues: { ...defaultValues },
       };
@@ -357,6 +392,17 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
         columns,
       };
     });
+  }
+
+  /**
+   * Override propertyTypeSet to clear default value when column type changes
+   */
+  override propertyTypeSet(propertyId: string, type: string): void {
+    // Очищаем значение по умолчанию при смене типа колонки
+    this.columnRemoveDefaultValue(propertyId);
+
+    // Вызываем оригинальный метод
+    super.propertyTypeSet(propertyId, type);
   }
 
   override rowAdd(
