@@ -239,7 +239,7 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
   }
 
   columnUpdateWidth(columnId: string, width: number): void {
-    this.dataUpdate(data => {
+    this.dataUpdate(_ => {
       return {
         columns: this.computedColumns$.value.map(v =>
           v.id === columnId
