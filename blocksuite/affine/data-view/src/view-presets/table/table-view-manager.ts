@@ -263,7 +263,7 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
       const defaultValues = data.defaultValues ?? {};
       defaultValues[columnId] = value;
       return {
-        defaultValues,
+        defaultValues: { ...defaultValues },
       };
     });
   }
@@ -279,7 +279,7 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
         delete defaultValues[columnId];
       }
       return {
-        defaultValues,
+        defaultValues: { ...defaultValues },
       };
     });
   }
@@ -290,7 +290,10 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
    * @returns The default value or undefined if not set
    */
   columnGetDefaultValue(columnId: string): unknown {
-    return this.data$.value?.defaultValues?.[columnId];
+    const defaultValues = this.data$.value?.defaultValues;
+    if (!defaultValues) return undefined;
+
+    return defaultValues[columnId];
   }
 
   isShow(rowId: string): boolean {
@@ -362,10 +365,10 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
   ): string {
     const id = super.rowAdd(insertPosition);
 
-    const filter = this.filter$.value;
-    if (filter.conditions.length > 0) {
-      const defaultValues = generateDefaultValues(filter, this.vars$.value);
-      Object.entries(defaultValues).forEach(([propertyId, jsonValue]) => {
+    // Apply default values from configuration first
+    const configDefaultValues = this.data$.value?.defaultValues;
+    if (configDefaultValues) {
+      Object.entries(configDefaultValues).forEach(([propertyId, jsonValue]) => {
         const property = this.propertyGet(propertyId);
         const propertyMeta = this.propertyMetaGet(property.type$.value);
         if (propertyMeta) {
@@ -379,10 +382,11 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
       });
     }
 
-    // Apply default values from configuration
-    const configDefaultValues = this.data$.value?.defaultValues;
-    if (configDefaultValues) {
-      Object.entries(configDefaultValues).forEach(([propertyId, jsonValue]) => {
+    // Then apply filter-based default values (these will override configuration defaults if there's a conflict)
+    const filter = this.filter$.value;
+    if (filter.conditions.length > 0) {
+      const defaultValues = generateDefaultValues(filter, this.vars$.value);
+      Object.entries(defaultValues).forEach(([propertyId, jsonValue]) => {
         const property = this.propertyGet(propertyId);
         const propertyMeta = this.propertyMetaGet(property.type$.value);
         if (propertyMeta) {

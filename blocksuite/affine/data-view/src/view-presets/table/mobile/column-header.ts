@@ -128,6 +128,39 @@ export class MobileTableColumnHeader extends SignalWatcher(
         items: [
           inputConfig,
           menu.action({
+            name:
+              currentDefaultValue !== undefined
+                ? `Current: ${String(currentDefaultValue)}`
+                : 'No default value set',
+            class: {
+              'menu-item-info': true,
+            },
+            prefix: html`<svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style="color: var(--affine-text-secondary-color);"
+            >
+              <path
+                d="M8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5ZM8 13.5C4.96243 13.5 2.5 11.0376 2.5 8C2.5 4.96243 4.96243 2.5 8 2.5C11.0376 2.5 13.5 4.96243 13.5 8C13.5 11.0376 11.0376 13.5 8 13.5Z"
+                fill="currentColor"
+              />
+              <path
+                d="M8 7C8.27614 7 8.5 7.22386 8.5 7.5V10.5C8.5 10.7761 8.27614 11 8 11C7.72386 11 7.5 10.7761 7.5 10.5V7.5C7.5 7.22386 7.72386 7 8 7Z"
+                fill="currentColor"
+              />
+              <path
+                d="M8 6C8.41421 6 8.75 5.66421 8.75 5.25C8.75 4.83579 8.41421 4.5 8 4.5C7.58579 4.5 7.25 4.83579 7.25 5.25C7.25 5.66421 7.58579 6 8 6Z"
+                fill="currentColor"
+              />
+            </svg>`,
+            select: () => {
+              // Это информационный пункт, ничего не делаем при клике
+            },
+          }),
+          menu.action({
             name: 'Clear Default Value',
             hide: () => currentDefaultValue === undefined,
             select: () => {
@@ -200,6 +233,36 @@ export class MobileTableColumnHeader extends SignalWatcher(
               }),
               menu.action({
                 name: 'Set Default Value',
+                prefix: html`<svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5ZM8 13.5C4.96243 13.5 2.5 11.0376 2.5 8C2.5 4.96243 4.96243 2.5 8 2.5C11.0376 2.5 13.5 4.96243 13.5 8C13.5 11.0376 11.0376 13.5 8 13.5Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    d="M8 4.5C8.27614 4.5 8.5 4.72386 8.5 5V8.5H11.5C11.7761 8.5 12 8.72386 12 9C12 9.27614 11.7761 9.5 11.5 9.5H8C7.72386 9.5 7.5 9.27614 7.5 9V5C7.5 4.72386 7.72386 4.5 8 4.5Z"
+                    fill="currentColor"
+                  />
+                </svg>`,
+                postfix:
+                  this.tableViewManager.columnGetDefaultValue(
+                    this.column.id
+                  ) !== undefined
+                    ? html`<span
+                        style="color: var(--affine-text-secondary-color); font-size: 12px; margin-left: 4px;"
+                      >
+                        ${String(
+                          this.tableViewManager.columnGetDefaultValue(
+                            this.column.id
+                          )
+                        )}
+                      </span>`
+                    : undefined,
                 select: () => this._setDefaultValue(),
               }),
             ],
