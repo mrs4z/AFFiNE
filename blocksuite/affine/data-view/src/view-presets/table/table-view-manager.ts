@@ -239,7 +239,7 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
   }
 
   columnUpdateWidth(columnId: string, width: number): void {
-    this.dataUpdate(() => {
+    this.dataUpdate(data => {
       return {
         columns: this.computedColumns$.value.map(v =>
           v.id === columnId
@@ -251,6 +251,46 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
         ),
       };
     });
+  }
+
+  /**
+   * Set a default value for a column
+   * @param columnId The ID of the column
+   * @param value The default value to set
+   */
+  columnSetDefaultValue(columnId: string, value: unknown): void {
+    this.dataUpdate(data => {
+      const defaultValues = data.defaultValues ?? {};
+      defaultValues[columnId] = value;
+      return {
+        defaultValues,
+      };
+    });
+  }
+
+  /**
+   * Remove a default value for a column
+   * @param columnId The ID of the column
+   */
+  columnRemoveDefaultValue(columnId: string): void {
+    this.dataUpdate(data => {
+      const defaultValues = data.defaultValues ?? {};
+      if (defaultValues[columnId] !== undefined) {
+        delete defaultValues[columnId];
+      }
+      return {
+        defaultValues,
+      };
+    });
+  }
+
+  /**
+   * Get the default value for a column
+   * @param columnId The ID of the column
+   * @returns The default value or undefined if not set
+   */
+  columnGetDefaultValue(columnId: string): unknown {
+    return this.data$.value?.defaultValues?.[columnId];
   }
 
   isShow(rowId: string): boolean {
@@ -326,6 +366,23 @@ export class TableSingleView extends SingleViewBase<TableViewData> {
     if (filter.conditions.length > 0) {
       const defaultValues = generateDefaultValues(filter, this.vars$.value);
       Object.entries(defaultValues).forEach(([propertyId, jsonValue]) => {
+        const property = this.propertyGet(propertyId);
+        const propertyMeta = this.propertyMetaGet(property.type$.value);
+        if (propertyMeta) {
+          const value = fromJson(propertyMeta.config, {
+            value: jsonValue,
+            data: property.data$.value,
+            dataSource: this.dataSource,
+          });
+          this.cellValueSet(id, propertyId, value);
+        }
+      });
+    }
+
+    // Apply default values from configuration
+    const configDefaultValues = this.data$.value?.defaultValues;
+    if (configDefaultValues) {
+      Object.entries(configDefaultValues).forEach(([propertyId, jsonValue]) => {
         const property = this.propertyGet(propertyId);
         const propertyMeta = this.propertyMetaGet(property.type$.value);
         if (propertyMeta) {

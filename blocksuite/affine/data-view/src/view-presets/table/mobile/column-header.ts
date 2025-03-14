@@ -63,6 +63,82 @@ export class MobileTableColumnHeader extends SignalWatcher(
     this._clickColumn();
   };
 
+  private _setDefaultValue() {
+    const column = this.column;
+    const propertyMeta = this.tableViewManager.propertyMetaGet(
+      column.type$.value
+    );
+    if (!propertyMeta) return;
+
+    const currentDefaultValue = this.tableViewManager.columnGetDefaultValue(
+      column.id
+    );
+
+    // Create input based on property type
+    const propertyType = column.type$.value;
+    let inputConfig;
+
+    if (propertyType === 'number') {
+      inputConfig = menu.input({
+        placeholder: 'Enter default number value',
+        initialValue:
+          currentDefaultValue !== undefined ? String(currentDefaultValue) : '',
+        onComplete: value => {
+          const numValue = Number(value);
+          if (!isNaN(numValue)) {
+            this.tableViewManager.columnSetDefaultValue(column.id, numValue);
+          } else if (value === '') {
+            this.tableViewManager.columnRemoveDefaultValue(column.id);
+          }
+        },
+      });
+    } else if (propertyType === 'checkbox') {
+      inputConfig = menu.action({
+        name: 'Set as checked by default',
+        isSelected: !!currentDefaultValue,
+        select: () => {
+          if (currentDefaultValue) {
+            this.tableViewManager.columnRemoveDefaultValue(column.id);
+          } else {
+            this.tableViewManager.columnSetDefaultValue(column.id, true);
+          }
+        },
+      });
+    } else {
+      // Default to text input for other types
+      inputConfig = menu.input({
+        placeholder: 'Enter default value',
+        initialValue:
+          currentDefaultValue !== undefined ? String(currentDefaultValue) : '',
+        onComplete: value => {
+          if (value) {
+            this.tableViewManager.columnSetDefaultValue(column.id, value);
+          } else {
+            this.tableViewManager.columnRemoveDefaultValue(column.id);
+          }
+        },
+      });
+    }
+
+    popMenu(popupTargetFromElement(this), {
+      options: {
+        title: {
+          text: `Default Value for ${column.name$.value}`,
+        },
+        items: [
+          inputConfig,
+          menu.action({
+            name: 'Clear Default Value',
+            hide: () => currentDefaultValue === undefined,
+            select: () => {
+              this.tableViewManager.columnRemoveDefaultValue(column.id);
+            },
+          }),
+        ],
+      },
+    });
+  }
+
   private popMenu(ele?: HTMLElement) {
     const enableNumberFormatting =
       this.tableViewManager.featureFlags$.value.enable_number_formatting;
@@ -121,6 +197,10 @@ export class MobileTableColumnHeader extends SignalWatcher(
                 select: () => {
                   this.column.hideSet(true);
                 },
+              }),
+              menu.action({
+                name: 'Set Default Value',
+                select: () => this._setDefaultValue(),
               }),
             ],
           }),

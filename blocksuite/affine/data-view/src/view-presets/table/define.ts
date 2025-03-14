@@ -23,6 +23,7 @@ type DataType = {
     iconColumn?: string;
     imageColumn?: string;
   };
+  defaultValues?: Record<string, unknown>;
 };
 export type TableViewData = BasicViewDataType<
   typeof tableViewType.type,
