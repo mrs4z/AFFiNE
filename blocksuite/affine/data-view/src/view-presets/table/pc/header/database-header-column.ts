@@ -324,7 +324,7 @@ export class DatabaseHeaderColumn extends SignalWatcher(
             if (!isNaN(dateObj.getTime())) {
               formattedCurrentValue = formatDate(dateObj);
             }
-          } catch (e) {
+          } catch {
             // Keep the original value if parsing fails
           }
         }
@@ -525,7 +525,7 @@ export class DatabaseHeaderColumn extends SignalWatcher(
                                 return `${year}-${month}-${day}`;
                               }
                               return currentDefaultValue;
-                            } catch (e) {
+                            } catch {
                               return currentDefaultValue;
                             }
                           })()
