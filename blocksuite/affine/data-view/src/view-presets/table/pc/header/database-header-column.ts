@@ -233,7 +233,7 @@ export class DatabaseHeaderColumn extends SignalWatcher(
         },
       });
     } else if (propertyType === 'select' || propertyType === 'multiSelect') {
-      // Для select/multiSelect используем динамический список тегов
+      // For select/multiSelect we use a dynamic list of tags
       inputConfig = menu.dynamic(() => {
         const options = column.data$.value?.options || [];
         if (!Array.isArray(options) || options.length === 0) {
@@ -245,8 +245,26 @@ export class DatabaseHeaderColumn extends SignalWatcher(
           ];
         }
 
+        // Function to determine if a color is light
+        const isLightColor = (color: string) => {
+          // Convert hex to RGB
+          const hex = color.replace('#', '');
+          const r = parseInt(hex.substr(0, 2), 16);
+          const g = parseInt(hex.substr(2, 2), 16);
+          const b = parseInt(hex.substr(4, 2), 16);
+
+          // Calculate brightness (W3C formula)
+          const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+          // If brightness > 155, consider the color light
+          return brightness > 155;
+        };
+
         return options.map(
           (option: { id: string; value: string; color: string }) => {
+            // Determine text color for each tag individually
+            const textColor = isLightColor(option.color) ? 'black' : 'white';
+
             return menu.action({
               name: option.value,
               isSelected: currentDefaultValue === option.id,
@@ -256,7 +274,7 @@ export class DatabaseHeaderColumn extends SignalWatcher(
                   background-color: ${option.color};
                   border-radius: 4px;
                   padding: 2px 8px;
-                  color: white;
+                  color: ${textColor};
                   font-size: 12px;
                   margin-right: 4px;
                 "
@@ -273,6 +291,183 @@ export class DatabaseHeaderColumn extends SignalWatcher(
             });
           }
         );
+      });
+    } else if (propertyType === 'date') {
+      // For date type, provide predefined options with better UI
+      inputConfig = menu.dynamic(() => {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
+
+        const formatDate = (date: Date) => {
+          // Format: YYYY-MM-DD
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+
+        const dateOptions = [
+          { label: 'Today', value: formatDate(today) },
+          { label: 'Tomorrow', value: formatDate(tomorrow) },
+          { label: 'Next week', value: formatDate(nextWeek) },
+        ];
+
+        // Format the current default value if it exists
+        let formattedCurrentValue = currentDefaultValue;
+        if (currentDefaultValue) {
+          // Try to ensure the date is in YYYY-MM-DD format
+          try {
+            const dateObj = new Date(String(currentDefaultValue));
+            if (!isNaN(dateObj.getTime())) {
+              formattedCurrentValue = formatDate(dateObj);
+            }
+          } catch (e) {
+            // Keep the original value if parsing fails
+          }
+        }
+
+        // Add a simple date input with the correct format
+        const dateInputItem = menu.input({
+          placeholder: 'YYYY-MM-DD',
+          initialValue:
+            formattedCurrentValue !== undefined
+              ? String(formattedCurrentValue)
+              : '',
+          onComplete: value => {
+            if (value === '') {
+              this.tableViewManager.columnRemoveDefaultValue(column.id);
+              return;
+            }
+
+            // Validate date format (YYYY-MM-DD)
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (dateRegex.test(value)) {
+              // Verify it's a valid date
+              const dateObj = new Date(value);
+              if (!isNaN(dateObj.getTime())) {
+                this.tableViewManager.columnSetDefaultValue(column.id, value);
+              }
+            }
+          },
+        });
+
+        // Create preset options
+        const presetItems = dateOptions.map(option => {
+          return menu.action({
+            name: `${option.label} (${option.value})`,
+            isSelected: formattedCurrentValue === option.value,
+            select: () => {
+              this.tableViewManager.columnSetDefaultValue(
+                column.id,
+                option.value
+              );
+            },
+          });
+        });
+
+        // Add clear option
+        const clearItem = menu.action({
+          name: 'Clear date',
+          hide: () => currentDefaultValue === undefined,
+          select: () => {
+            this.tableViewManager.columnRemoveDefaultValue(column.id);
+          },
+        });
+
+        return [dateInputItem, ...presetItems, clearItem];
+      });
+    } else if (propertyType === 'progress') {
+      // For progress type, provide a slider and predefined values with better UI
+      inputConfig = menu.dynamic(() => {
+        const progressOptions = [
+          { label: 'Not started (0%)', value: 0 },
+          { label: 'In progress (50%)', value: 50 },
+          { label: 'Completed (100%)', value: 100 },
+        ];
+
+        const currentValue =
+          currentDefaultValue !== undefined ? Number(currentDefaultValue) : 0;
+
+        // Create a custom progress display
+        const progressDisplayItem = menu.action({
+          name: `Current progress: ${currentValue}%`,
+          prefix: html`
+            <div
+              style="
+                width: 100px;
+                height: 8px;
+                background-color: #eee;
+                border-radius: 4px;
+                margin-right: 8px;
+                overflow: hidden;
+              "
+            >
+              <div
+                style="
+                  width: ${currentValue}%;
+                  height: 100%;
+                  background-color: var(--affine-primary-color);
+                "
+              ></div>
+            </div>
+          `,
+          select: () => {
+            // This is just a display, no action needed
+          },
+        });
+
+        // Create input for precise value
+        const progressInputItem = menu.input({
+          placeholder: 'Enter progress (0-100)',
+          initialValue: String(currentValue),
+          onComplete: value => {
+            const numValue = Number(value);
+            if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+              this.tableViewManager.columnSetDefaultValue(column.id, numValue);
+            } else if (value === '') {
+              this.tableViewManager.columnRemoveDefaultValue(column.id);
+            }
+          },
+        });
+
+        // Then add preset options
+        const presetItems = progressOptions.map(option => {
+          return menu.action({
+            name: option.label,
+            isSelected: currentValue === option.value,
+            prefix: html`
+              <div
+                style="
+                width: 50px;
+                height: 8px;
+                background-color: #eee;
+                border-radius: 4px;
+                margin-right: 8px;
+                overflow: hidden;
+              "
+              >
+                <div
+                  style="
+                  width: ${option.value}%;
+                  height: 100%;
+                  background-color: var(--affine-primary-color);
+                  "
+                ></div>
+              </div>
+            `,
+            select: () => {
+              this.tableViewManager.columnSetDefaultValue(
+                column.id,
+                option.value
+              );
+            },
+          });
+        });
+
+        return [progressDisplayItem, progressInputItem, ...presetItems];
       });
     } else {
       // Default to text input for other types
@@ -295,7 +490,7 @@ export class DatabaseHeaderColumn extends SignalWatcher(
         title: {
           text: `Default Value for ${column.name$.value}`,
           onBack: () => {
-            // Возвращаемся к основному меню
+            // Return to the main menu
             this.popMenu();
           },
         },
@@ -312,7 +507,29 @@ export class DatabaseHeaderColumn extends SignalWatcher(
                                 opt.id === currentDefaultValue
                             )?.value
                           : undefined) || currentDefaultValue
-                      : currentDefaultValue
+                      : propertyType === 'date'
+                        ? (() => {
+                            try {
+                              const dateObj = new Date(
+                                String(currentDefaultValue)
+                              );
+                              if (!isNaN(dateObj.getTime())) {
+                                const year = dateObj.getFullYear();
+                                const month = String(
+                                  dateObj.getMonth() + 1
+                                ).padStart(2, '0');
+                                const day = String(dateObj.getDate()).padStart(
+                                  2,
+                                  '0'
+                                );
+                                return `${year}-${month}-${day}`;
+                              }
+                              return currentDefaultValue;
+                            } catch (e) {
+                              return currentDefaultValue;
+                            }
+                          })()
+                        : currentDefaultValue
                   )}`
                 : 'No default value set',
             class: {
@@ -340,7 +557,7 @@ export class DatabaseHeaderColumn extends SignalWatcher(
               />
             </svg>`,
             select: () => {
-              // Это информационный пункт, ничего не делаем при клике
+              // This is an informational item, do nothing on click
             },
           }),
           menu.action({
