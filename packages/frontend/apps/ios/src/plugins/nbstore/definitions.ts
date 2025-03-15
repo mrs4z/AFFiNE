@@ -137,5 +137,16 @@ export interface NbStorePlugin {
     docId: string;
     timestamp: number;
   }) => Promise<void>;
+  getBlobUploadedAt: (options: {
+    id: string;
+    peer: string;
+    blobId: string;
+  }) => Promise<{ uploadedAt: number | null }>;
+  setBlobUploadedAt: (options: {
+    id: string;
+    peer: string;
+    blobId: string;
+    uploadedAt: number | null;
+  }) => Promise<void>;
   clearClocks: (options: { id: string }) => Promise<void>;
 }

@@ -1,10 +1,10 @@
-import {
-  type BlockLayout,
-  type BlockLayoutPainter,
-  BlockLayoutPainterExtension,
-  type TextRect,
-  type WorkerToHostMessage,
+import type {
+  BlockLayout,
+  BlockLayoutPainter,
+  TextRect,
+  WorkerToHostMessage,
 } from '@blocksuite/affine-gfx-turbo-renderer';
+import { BlockLayoutPainterExtension } from '@blocksuite/affine-gfx-turbo-renderer/painter';
 
 interface SentenceLayout {
   text: string;

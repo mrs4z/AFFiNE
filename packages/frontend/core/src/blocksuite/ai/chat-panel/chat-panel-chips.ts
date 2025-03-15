@@ -69,6 +69,9 @@ export class ChatPanelChips extends WithDisposable(ShadowlessElement) {
   accessor updateContext!: (context: Partial<ChatContextValue>) => void;
 
   @property({ attribute: false })
+  accessor pollContextDocsAndFiles!: () => void;
+
+  @property({ attribute: false })
   accessor docDisplayConfig!: DocDisplayConfig;
 
   @property({ attribute: false })
@@ -201,6 +204,7 @@ export class ChatPanelChips extends WithDisposable(ShadowlessElement) {
       await this._removeFromContext(chip);
     }
     await this._addToContext(chip);
+    this.pollContextDocsAndFiles();
   };
 
   private readonly _updateChip = (
@@ -229,19 +233,24 @@ export class ChatPanelChips extends WithDisposable(ShadowlessElement) {
 
   private readonly _removeChip = async (chip: ChatChip) => {
     if (isDocChip(chip)) {
-      await this._removeFromContext(chip);
-      this.updateContext({
-        chips: this.chatContextValue.chips.filter(item => {
-          return !isDocChip(item) || item.docId !== chip.docId;
-        }),
-      });
-    } else {
-      await this._removeFromContext(chip);
-      this.updateContext({
-        chips: this.chatContextValue.chips.filter(item => {
-          return !isFileChip(item) || item.file !== chip.file;
-        }),
-      });
+      const removed = await this._removeFromContext(chip);
+      if (removed) {
+        this.updateContext({
+          chips: this.chatContextValue.chips.filter(item => {
+            return !isDocChip(item) || item.docId !== chip.docId;
+          }),
+        });
+      }
+    }
+    if (isFileChip(chip)) {
+      const removed = await this._removeFromContext(chip);
+      if (removed) {
+        this.updateContext({
+          chips: this.chatContextValue.chips.filter(item => {
+            return !isFileChip(item) || item.file !== chip.file;
+          }),
+        });
+      }
     }
   };
 
@@ -255,7 +264,8 @@ export class ChatPanelChips extends WithDisposable(ShadowlessElement) {
         contextId,
         docId: chip.docId,
       });
-    } else {
+    }
+    if (isFileChip(chip)) {
       try {
         const blobId = await this.host.doc.blobSync.set(chip.file);
         const contextFile = await AIProvider.context.addContextFile(chip.file, {
@@ -263,7 +273,7 @@ export class ChatPanelChips extends WithDisposable(ShadowlessElement) {
           blobId,
         });
         this._updateChip(chip, {
-          state: 'success',
+          state: contextFile.status,
           blobId: contextFile.blobId,
           fileId: contextFile.id,
         });
@@ -276,22 +286,26 @@ export class ChatPanelChips extends WithDisposable(ShadowlessElement) {
     }
   };
 
-  private readonly _removeFromContext = async (chip: ChatChip) => {
+  private readonly _removeFromContext = async (
+    chip: ChatChip
+  ): Promise<boolean> => {
     const contextId = await this.getContextId();
     if (!contextId || !AIProvider.context) {
-      return;
+      return false;
     }
     if (isDocChip(chip)) {
-      await AIProvider.context.removeContextDoc({
+      return await AIProvider.context.removeContextDoc({
         contextId,
         docId: chip.docId,
       });
-    } else if (isFileChip(chip) && chip.fileId) {
-      await AIProvider.context.removeContextFile({
+    }
+    if (isFileChip(chip) && chip.fileId) {
+      return await AIProvider.context.removeContextFile({
         contextId,
         fileId: chip.fileId,
       });
     }
+    return true;
   };
 
   private readonly _checkTokenLimit = (
@@ -305,7 +319,7 @@ export class ChatPanelChips extends WithDisposable(ShadowlessElement) {
       if (chip.docId === newChip.docId) {
         return acc + newTokenCount;
       }
-      if (chip.markdown?.value && chip.state === 'success') {
+      if (chip.markdown?.value && chip.state === 'finished') {
         const tokenCount =
           chip.tokenCount ?? estimateTokenCount(chip.markdown.value);
         return acc + tokenCount;

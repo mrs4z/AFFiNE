@@ -8,8 +8,8 @@ import type { Workspace } from '@affine/core/modules/workspace';
 import { useI18n } from '@affine/i18n';
 import { universalId } from '@affine/nbstore';
 import track from '@affine/track';
-import { LiveData, useLiveData, useService } from '@toeverything/infra';
-import { useMemo, useState } from 'react';
+import { useService } from '@toeverything/infra';
+import { useState } from 'react';
 
 interface ExportPanelProps {
   workspace: Workspace;
@@ -22,39 +22,18 @@ export const DesktopExportPanel = ({ workspace }: ExportPanelProps) => {
   const desktopApi = useService(DesktopApiService);
   const isLocalWorkspace = workspace.flavour === 'local';
 
-  const docSyncState = useLiveData(
-    useMemo(() => {
-      return workspace
-        ? LiveData.from(workspace.engine.doc.state$, null).throttleTime(500)
-        : null;
-    }, [workspace])
-  );
-
-  const blobSyncState = useLiveData(
-    useMemo(() => {
-      return workspace
-        ? LiveData.from(workspace.engine.blob.state$, null).throttleTime(500)
-        : null;
-    }, [workspace])
-  );
-
-  const docSynced = !docSyncState?.syncing;
-  const blobSynced =
-    !blobSyncState || blobSyncState.synced === blobSyncState.total;
+  const [fullSyncing, setFullSyncing] = useState(false);
   const [fullSynced, setFullSynced] = useState(false);
 
-  const shouldWaitForFullSync =
-    isLocalWorkspace || !isOnline || (fullSynced && docSynced && blobSynced);
-  const fullSyncing = fullSynced && (!docSynced || !blobSynced);
+  const shouldWaitForFullSync = !isLocalWorkspace && isOnline && !fullSynced;
 
   const fullSync = useAsyncCallback(async () => {
-    // NOTE: doc full sync is always started by default
-    // await workspace.engine.doc.waitForSynced();
-    workspace.engine.blob.fullDownload().catch(() => {
-      /* noop */
-    });
+    setFullSyncing(true);
+    await workspace.engine.blob.fullDownload();
+    await workspace.engine.doc.waitForSynced();
     setFullSynced(true);
-  }, [workspace.engine.blob]);
+    setFullSyncing(false);
+  }, [workspace.engine.blob, workspace.engine.doc]);
 
   const onExport = useAsyncCallback(async () => {
     if (saving) {
@@ -86,7 +65,7 @@ export const DesktopExportPanel = ({ workspace }: ExportPanelProps) => {
     }
   }, [desktopApi, saving, t, workspace]);
 
-  if (!shouldWaitForFullSync) {
+  if (shouldWaitForFullSync) {
     return (
       <SettingRow name={t['Export']()} desc={t['Full Sync Description']()}>
         <Button

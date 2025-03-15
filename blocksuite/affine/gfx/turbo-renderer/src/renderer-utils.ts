@@ -4,10 +4,8 @@ import {
   GfxControllerIdentifier,
   type Viewport,
 } from '@blocksuite/block-std/gfx';
-import { Pane } from 'tweakpane';
 
 import { BlockLayoutHandlersIdentifier } from './layout/block-layout-provider';
-import type { ViewportTurboRendererExtension } from './turbo-renderer';
 import type { BlockLayout, RenderingState, ViewportLayout } from './types';
 
 export function syncCanvasSize(canvas: HTMLCanvasElement, host: HTMLElement) {
@@ -87,22 +85,6 @@ export function getViewportLayout(
     },
   };
   return layout;
-}
-
-export function initTweakpane(
-  renderer: ViewportTurboRendererExtension,
-  viewportElement: HTMLElement
-) {
-  const debugPane = new Pane({ container: viewportElement });
-  const paneElement = debugPane.element;
-  paneElement.style.position = 'absolute';
-  paneElement.style.top = '10px';
-  paneElement.style.right = '10px';
-  paneElement.style.width = '250px';
-  debugPane.title = 'Viewport Turbo Renderer';
-  debugPane.addButton({ title: 'Invalidate' }).on('click', () => {
-    renderer.invalidate();
-  });
 }
 
 export function debugLog(message: string, state: RenderingState) {

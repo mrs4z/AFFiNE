@@ -6,5 +6,9 @@
     "outDir": "./dist",
     "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo"
   },
-  "references": [{ "path": "../infra" }, { "path": "../../frontend/graphql" }]
+  "references": [
+    { "path": "../infra" },
+    { "path": "../error" },
+    { "path": "../../frontend/graphql" }
+  ]
 }

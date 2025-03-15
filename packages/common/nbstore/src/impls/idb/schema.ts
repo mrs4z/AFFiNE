@@ -36,6 +36,11 @@ Table(PeerClocks)
 | peer | docId |   clock   |  pushed   |
 |------|-------|-----------|-----------|
 | str  |  str  |   Date    |   Date    |
+
+Table(BlobSync)
+| peer | key | uploadedAt |
+|------|-----|------------|
+| str  | str |   Date     |
  */
 export interface DocStorageSchema extends DBSchema {
   snapshots: {
@@ -79,6 +84,17 @@ export interface DocStorageSchema extends DBSchema {
       size: number;
       createdAt: Date;
       deletedAt: Date | null;
+    };
+  };
+  blobSync: {
+    key: [string, string];
+    value: {
+      peer: string;
+      key: string;
+      uploadedAt: Date | null;
+    };
+    indexes: {
+      peer: string;
     };
   };
   blobData: {
@@ -175,11 +191,19 @@ const init: Migrate = db => {
     autoIncrement: false,
   });
 };
+const initBlobSync: Migrate = db => {
+  const blobSync = db.createObjectStore('blobSync', {
+    keyPath: ['peer', 'key'],
+    autoIncrement: false,
+  });
+
+  blobSync.createIndex('peer', 'peer', { unique: false });
+};
 // END REGION
 
 // 1. all schema changed should be put in migrations
 // 2. order matters
-const migrations: Migrate[] = [init];
+const migrations: Migrate[] = [init, initBlobSync];
 
 export const migrator = {
   version: migrations.length,

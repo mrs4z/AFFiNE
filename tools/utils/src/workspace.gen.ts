@@ -690,6 +690,7 @@ export const PackageList = [
     name: '@affine/nbstore',
     workspaceDependencies: [
       'packages/common/infra',
+      'packages/common/error',
       'packages/frontend/graphql',
     ],
   },

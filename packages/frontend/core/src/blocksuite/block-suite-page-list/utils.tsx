@@ -5,7 +5,11 @@ import { DocsService } from '@affine/core/modules/doc';
 import { EditorSettingService } from '@affine/core/modules/editor-setting';
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { getAFFiNEWorkspaceSchema } from '@affine/core/modules/workspace';
-import { type DocMode } from '@blocksuite/affine/model';
+import {
+  DEFAULT_PAGE_BLOCK_HEIGHT,
+  DEFAULT_PAGE_BLOCK_WIDTH,
+  type DocMode,
+} from '@blocksuite/affine/model';
 import type { Workspace } from '@blocksuite/affine/store';
 import { useServices } from '@toeverything/infra';
 import { useCallback, useMemo } from 'react';
@@ -39,7 +43,10 @@ export const usePageHelper = (docCollection: Workspace) => {
     ) => {
       appSidebar.setHovering(false);
       const docProps: DocProps = {
-        note: editorSettingService.editorSetting.get('affine:note'),
+        note: {
+          ...editorSettingService.editorSetting.get('affine:note'),
+          xywh: `[0, 0, ${DEFAULT_PAGE_BLOCK_WIDTH}, ${DEFAULT_PAGE_BLOCK_HEIGHT}]`,
+        },
       };
       const page = docsService.createDoc({ docProps });
 

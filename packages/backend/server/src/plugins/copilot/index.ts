@@ -60,7 +60,7 @@ registerCopilotProvider(PerplexityProvider);
   controllers: [CopilotController],
   contributesTo: ServerFeature.Copilot,
   if: config => {
-    if (config.flavor.graphql) {
+    if (config.flavor.graphql || config.flavor.doc) {
       return assertProvidersConfigs(config);
     }
     return false;

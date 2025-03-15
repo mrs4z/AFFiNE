@@ -106,6 +106,7 @@ export class CMDKQuickSearchService extends Service {
                 primaryMode: 'page',
                 docProps,
               });
+
               this.workbenchService.workbench.openDoc(newDoc.id);
             } else if (result.id === 'creation:create-edgeless') {
               const newDoc = this.docsService.createDoc({

@@ -26,7 +26,7 @@ import {
 import { metrics } from '../metrics';
 import { getRequestIdFromHost } from '../utils';
 
-function isGraphQLBadRequest(error: any): error is GraphQLError {
+export function isGraphQLBadRequest(error: GraphQLError) {
   // https://www.apollographql.com/docs/apollo-server/data/errors
   const code = error.extensions?.code;
   return (
@@ -39,14 +39,13 @@ function isGraphQLBadRequest(error: any): error is GraphQLError {
 
 export function mapAnyError(error: any): UserFriendlyError {
   if (error instanceof GraphQLError) {
-    const err = error;
     if (isGraphQLBadRequest(error)) {
       return new GraphqlBadRequest({
-        code: err.extensions.code as string,
-        message: err.message,
+        code: error.extensions.code as string,
+        message: error.message,
       });
     }
-    error = err.originalError ?? error;
+    error = error.originalError ?? error;
   }
   if (error instanceof UserFriendlyError) {
     return error;

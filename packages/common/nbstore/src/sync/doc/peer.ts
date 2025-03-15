@@ -557,10 +557,10 @@ export class DocSyncPeer {
         };
         this.statusUpdatedSubject$.next(true);
       }
-      // wait for 1s before next retry
+      // wait for 5s before next retry
       await Promise.race([
         new Promise<void>(resolve => {
-          setTimeout(resolve, 1000);
+          setTimeout(resolve, 5000);
         }),
         new Promise((_, reject) => {
           // exit if manually stopped

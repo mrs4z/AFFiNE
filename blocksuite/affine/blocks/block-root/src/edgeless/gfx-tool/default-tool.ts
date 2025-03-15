@@ -1,6 +1,6 @@
 import { insertEdgelessTextCommand } from '@blocksuite/affine-block-edgeless-text';
 import {
-  type EdgelessFrameManager,
+  EdgelessFrameManagerIdentifier,
   type FrameOverlay,
   isFrameBlock,
 } from '@blocksuite/affine-block-frame';
@@ -36,7 +36,6 @@ import {
   BaseTool,
   getTopElements,
   type GfxBlockElementModel,
-  GfxExtensionIdentifier,
   type GfxModel,
   type GfxPrimitiveElementModel,
   isGfxGroupCompatibleModel,
@@ -233,9 +232,7 @@ export class DefaultTool extends BaseTool {
   }
 
   private get _frameMgr() {
-    return this.std.get(
-      GfxExtensionIdentifier('frame-manager')
-    ) as EdgelessFrameManager;
+    return this.std.get(EdgelessFrameManagerIdentifier);
   }
 
   private get _supportedExts() {

@@ -1,7 +1,10 @@
 import type { ErrorDataUnion, ErrorNames } from '@affine/graphql';
 import { GraphQLError as BaseGraphQLError } from 'graphql';
 
-export type ErrorName = keyof typeof ErrorNames | 'NETWORK_ERROR';
+export type ErrorName =
+  | keyof typeof ErrorNames
+  | 'NETWORK_ERROR'
+  | 'CONTENT_TOO_LARGE';
 
 export interface UserFriendlyErrorResponse {
   status: number;

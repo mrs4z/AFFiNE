@@ -1,4 +1,4 @@
-import type { EdgelessFrameManager } from '@blocksuite/affine-block-frame';
+import { EdgelessFrameManagerIdentifier } from '@blocksuite/affine-block-frame';
 import { EdgelessCRUDIdentifier } from '@blocksuite/affine-block-surface';
 import type {
   EdgelessColorPickerButton,
@@ -17,7 +17,6 @@ import {
 } from '@blocksuite/affine-model';
 import { FeatureFlagService } from '@blocksuite/affine-shared/services';
 import { matchModels } from '@blocksuite/affine-shared/utils';
-import { GfxExtensionIdentifier } from '@blocksuite/block-std/gfx';
 import { deserializeXYWH, serializeXYWH } from '@blocksuite/global/gfx';
 import { WithDisposable } from '@blocksuite/global/lit';
 import { EditIcon, PageIcon, UngroupIcon } from '@blocksuite/icons/lit';
@@ -159,8 +158,8 @@ export class EdgelessChangeFrameButton extends WithDisposable(LitElement) {
             @click=${() => {
               this.edgeless.doc.captureSync();
               const frameMgr = this.edgeless.std.get(
-                GfxExtensionIdentifier('frame-manager')
-              ) as EdgelessFrameManager;
+                EdgelessFrameManagerIdentifier
+              );
               frames.forEach(frame =>
                 frameMgr.removeAllChildrenFromFrame(frame)
               );

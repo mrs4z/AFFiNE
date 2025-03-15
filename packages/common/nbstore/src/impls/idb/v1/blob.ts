@@ -7,6 +7,7 @@ import { BlobIDBConnection, type BlobIDBConnectionOptions } from './db';
  */
 export class IndexedDBV1BlobStorage extends BlobStorageBase {
   static readonly identifier = 'IndexedDBV1BlobStorage';
+  override readonly isReadonly = true;
 
   constructor(private readonly options: BlobIDBConnectionOptions) {
     super();

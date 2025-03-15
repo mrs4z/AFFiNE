@@ -2,7 +2,7 @@ import { Subject } from 'rxjs';
 import { describe, expect, test } from 'vitest';
 import * as Y from 'yjs';
 
-import { ReactiveFlatYMap } from '../reactive/flat-native-y.js';
+import { ReactiveFlatYMap } from '../reactive/flat-native-y/index.js';
 import type { Text } from '../reactive/index.js';
 import { Boxed, createYProxy, popProp, stashProp } from '../reactive/index.js';
 

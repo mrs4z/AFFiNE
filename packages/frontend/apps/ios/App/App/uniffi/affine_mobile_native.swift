@@ -514,6 +514,8 @@ public protocol DocStoragePoolProtocol: AnyObject {
     
     func getBlob(universalId: String, key: String) async throws  -> Blob?
     
+    func getBlobUploadedAt(universalId: String, peer: String, blobId: String) async throws  -> Int64?
+    
     func getDocClock(universalId: String, docId: String) async throws  -> DocClock?
     
     func getDocClocks(universalId: String, after: Int64?) async throws  -> [DocClock]
@@ -543,6 +545,8 @@ public protocol DocStoragePoolProtocol: AnyObject {
     func releaseBlobs(universalId: String) async throws 
     
     func setBlob(universalId: String, blob: SetBlob) async throws 
+    
+    func setBlobUploadedAt(universalId: String, peer: String, blobId: String, uploadedAt: Int64?) async throws 
     
     func setDocSnapshot(universalId: String, snapshot: DocRecord) async throws  -> Bool
     
@@ -705,6 +709,23 @@ open func getBlob(universalId: String, key: String)async throws  -> Blob?  {
             completeFunc: ffi_affine_mobile_native_rust_future_complete_rust_buffer,
             freeFunc: ffi_affine_mobile_native_rust_future_free_rust_buffer,
             liftFunc: FfiConverterOptionTypeBlob.lift,
+            errorHandler: FfiConverterTypeUniffiError.lift
+        )
+}
+    
+open func getBlobUploadedAt(universalId: String, peer: String, blobId: String)async throws  -> Int64?  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_affine_mobile_native_fn_method_docstoragepool_get_blob_uploaded_at(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(universalId),FfiConverterString.lower(peer),FfiConverterString.lower(blobId)
+                )
+            },
+            pollFunc: ffi_affine_mobile_native_rust_future_poll_rust_buffer,
+            completeFunc: ffi_affine_mobile_native_rust_future_complete_rust_buffer,
+            freeFunc: ffi_affine_mobile_native_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterOptionInt64.lift,
             errorHandler: FfiConverterTypeUniffiError.lift
         )
 }
@@ -954,6 +975,23 @@ open func setBlob(universalId: String, blob: SetBlob)async throws   {
                 uniffi_affine_mobile_native_fn_method_docstoragepool_set_blob(
                     self.uniffiClonePointer(),
                     FfiConverterString.lower(universalId),FfiConverterTypeSetBlob_lower(blob)
+                )
+            },
+            pollFunc: ffi_affine_mobile_native_rust_future_poll_void,
+            completeFunc: ffi_affine_mobile_native_rust_future_complete_void,
+            freeFunc: ffi_affine_mobile_native_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeUniffiError.lift
+        )
+}
+    
+open func setBlobUploadedAt(universalId: String, peer: String, blobId: String, uploadedAt: Int64?)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_affine_mobile_native_fn_method_docstoragepool_set_blob_uploaded_at(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(universalId),FfiConverterString.lower(peer),FfiConverterString.lower(blobId),FfiConverterOptionInt64.lower(uploadedAt)
                 )
             },
             pollFunc: ffi_affine_mobile_native_rust_future_poll_void,
@@ -1972,6 +2010,9 @@ private let initializationResult: InitializationResult = {
     if (uniffi_affine_mobile_native_checksum_method_docstoragepool_get_blob() != 56927) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_affine_mobile_native_checksum_method_docstoragepool_get_blob_uploaded_at() != 41270) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_affine_mobile_native_checksum_method_docstoragepool_get_doc_clock() != 48394) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -2015,6 +2056,9 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_affine_mobile_native_checksum_method_docstoragepool_set_blob() != 31398) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_affine_mobile_native_checksum_method_docstoragepool_set_blob_uploaded_at() != 7188) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_affine_mobile_native_checksum_method_docstoragepool_set_doc_snapshot() != 5287) {

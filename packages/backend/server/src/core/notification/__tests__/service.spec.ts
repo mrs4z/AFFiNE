@@ -9,6 +9,7 @@ import {
 } from '../../../__tests__/utils';
 import { NotificationNotFound } from '../../../base';
 import {
+  DocMode,
   MentionNotificationBody,
   Models,
   NotificationType,
@@ -239,7 +240,12 @@ test('should use latest doc title in mention notification', async t => {
     body: {
       workspaceId: workspace.id,
       createdByUserId: owner.id,
-      doc: { id: docId, title: 'doc-title-1', blockId: 'block-id-1' },
+      doc: {
+        id: docId,
+        title: 'doc-title-1',
+        blockId: 'block-id-1',
+        mode: DocMode.page,
+      },
     },
   });
   const mentionNotification = await notificationService.createMention({
@@ -247,7 +253,12 @@ test('should use latest doc title in mention notification', async t => {
     body: {
       workspaceId: workspace.id,
       createdByUserId: owner.id,
-      doc: { id: docId, title: 'doc-title-2', blockId: 'block-id-2' },
+      doc: {
+        id: docId,
+        title: 'doc-title-2',
+        blockId: 'block-id-2',
+        mode: DocMode.page,
+      },
     },
   });
   t.truthy(mentionNotification);
@@ -268,6 +279,7 @@ test('should use latest doc title in mention notification', async t => {
   t.is(mention.body.type, NotificationType.Mention);
   const body = mention.body as MentionNotificationBody;
   t.is(body.doc.title, 'doc-title-2-updated');
+  t.is(body.doc.mode, DocMode.page);
 
   const mention2 = notifications[1];
   t.is(mention2.body.workspace!.id, workspace.id);
@@ -276,6 +288,7 @@ test('should use latest doc title in mention notification', async t => {
   t.is(mention2.body.type, NotificationType.Mention);
   const body2 = mention2.body as MentionNotificationBody;
   t.is(body2.doc.title, 'doc-title-1-updated');
+  t.is(body2.doc.mode, DocMode.page);
 });
 
 test('should raw doc title in mention notification if no doc found', async t => {
@@ -286,7 +299,12 @@ test('should raw doc title in mention notification if no doc found', async t => 
     body: {
       workspaceId: workspace.id,
       createdByUserId: owner.id,
-      doc: { id: docId, title: 'doc-title-1', blockId: 'block-id-1' },
+      doc: {
+        id: docId,
+        title: 'doc-title-1',
+        blockId: 'block-id-1',
+        mode: DocMode.page,
+      },
     },
   });
   await notificationService.createMention({
@@ -294,7 +312,12 @@ test('should raw doc title in mention notification if no doc found', async t => 
     body: {
       workspaceId: workspace.id,
       createdByUserId: owner.id,
-      doc: { id: docId, title: 'doc-title-2', blockId: 'block-id-2' },
+      doc: {
+        id: docId,
+        title: 'doc-title-2',
+        blockId: 'block-id-2',
+        mode: DocMode.edgeless,
+      },
     },
   });
   mock.method(models.doc, 'findMetas', async () => [null, null]);
@@ -305,10 +328,12 @@ test('should raw doc title in mention notification if no doc found', async t => 
   t.is(mention.body.type, NotificationType.Mention);
   const body = mention.body as MentionNotificationBody;
   t.is(body.doc.title, 'doc-title-2');
+  t.is(body.doc.mode, DocMode.edgeless);
 
   const mention2 = notifications[1];
   t.is(mention2.body.workspace!.name, 'Test Workspace');
   t.is(mention2.body.type, NotificationType.Mention);
   const body2 = mention2.body as MentionNotificationBody;
   t.is(body2.doc.title, 'doc-title-1');
+  t.is(body2.doc.mode, DocMode.page);
 });

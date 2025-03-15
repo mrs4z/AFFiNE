@@ -17,7 +17,7 @@ import {
   getCopilotHistoryIdsQuery,
   getCopilotSessionsQuery,
   type GraphQLQuery,
-  listContextDocsAndFilesQuery,
+  listContextObjectQuery,
   listContextQuery,
   matchContextQuery,
   type QueryOptions,
@@ -295,7 +295,7 @@ export class CopilotClient {
     contextId: string
   ) {
     const res = await this.gql({
-      query: listContextDocsAndFilesQuery,
+      query: listContextObjectQuery,
       variables: {
         workspaceId,
         sessionId,

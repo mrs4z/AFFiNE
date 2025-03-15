@@ -4,7 +4,7 @@ import {
   loginUser,
   loginUserDirectly,
 } from '@affine-test/kit/utils/cloud';
-import { getPageMode } from '@affine-test/kit/utils/editor';
+import { focusDocTitle, getPageMode } from '@affine-test/kit/utils/editor';
 import { openHomePage, setCoreUrl } from '@affine-test/kit/utils/load-page';
 import {
   clickNewPageButton,
@@ -258,20 +258,106 @@ test.describe('chat panel', () => {
     expect((await collectChat(page))[1].content).not.toBe(content);
   });
 
-  test('can be insert below', async ({ page }) => {
+  test('can be inserted below the current selected block', async ({ page }) => {
     await page.reload();
     await clickSideBarAllPageButton(page);
     await page.waitForTimeout(200);
     await createLocalWorkspace({ name: 'test' }, page);
     await clickNewPageButton(page);
+
+    // create tow blocks
+    await focusToEditor(page);
+    await page.keyboard.type('hello');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('world');
+
+    // focus to hello
+    await page.waitForSelector('affine-paragraph');
+    const paragraphs = await page.$$('affine-paragraph');
+    await paragraphs[0].click();
+
     await makeChat(page, 'hello');
     const content = (await collectChat(page))[1].content;
-    await focusToEditor(page);
-    // insert below
-    await page.getByTestId('action-insert-below').click();
-    await page.waitForSelector('affine-toolbar-widget editor-toolbar');
+    await paragraphs[0].click();
+
+    await page.getByTestId('action-insert').click();
+
     const editorContent = await getEditorContent(page);
-    expect(editorContent).toBe(content);
+    expect(editorContent).toBe(`hello\n${content}\nworld`);
+  });
+
+  test('can be inserted below the last block if nothing selected', async ({
+    page,
+  }) => {
+    await page.reload();
+    await clickSideBarAllPageButton(page);
+    await page.waitForTimeout(200);
+    await createLocalWorkspace({ name: 'test' }, page);
+    await clickNewPageButton(page);
+
+    // create tow blocks
+    await focusToEditor(page);
+    await page.keyboard.type('hello');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('world');
+
+    // focus to hello
+    await page.waitForSelector('affine-paragraph');
+
+    await makeChat(page, 'hello');
+    const content = (await collectChat(page))[1].content;
+
+    await focusDocTitle(page);
+
+    await page.getByTestId('action-insert').click();
+
+    const editorContent = await getEditorContent(page);
+    expect(editorContent).toBe(`hello\nworld\n${content}`);
+  });
+
+  test('can be inserted as a new note if no note selected in edgeless mode', async ({
+    page,
+  }) => {
+    await page.reload();
+    await clickSideBarAllPageButton(page);
+    await page.waitForTimeout(200);
+    await createLocalWorkspace({ name: 'test' }, page);
+    await clickNewPageButton(page);
+    await switchToEdgelessMode(page);
+
+    // delete default note
+    await (await page.waitForSelector('affine-edgeless-note')).click();
+    page.keyboard.press('Delete');
+
+    // insert as a new note
+    await makeChat(page, 'hello');
+    const content = (await collectChat(page))[1].content;
+    await page.getByTestId('action-insert').click();
+
+    const edgelessNode = await page.waitForSelector('affine-edgeless-note');
+    expect(await edgelessNode.innerText()).toBe(content);
+  });
+
+  test('can be inserted into selected note in edgeless mode', async ({
+    page,
+  }) => {
+    await page.reload();
+    await clickSideBarAllPageButton(page);
+    await page.waitForTimeout(200);
+    await createLocalWorkspace({ name: 'test' }, page);
+    await clickNewPageButton(page);
+    await switchToEdgelessMode(page);
+
+    // select
+    const note = await page.waitForSelector('affine-edgeless-note');
+    await note.click();
+
+    // insert as a new note
+    await makeChat(page, 'hello');
+    const content = (await collectChat(page))[1].content;
+    await page.getByTestId('action-insert').click();
+
+    expect(await note.innerText()).toContain(content);
   });
 
   test('can be add to edgeless as node', async ({ page }) => {
@@ -301,7 +387,7 @@ test.describe('chat panel', () => {
     await makeChat(page, 'hello');
     const content = (await collectChat(page))[1].content;
     const editor = await page.waitForSelector('page-editor');
-    await page.getByTestId('action-create-as-a-doc').click();
+    await page.getByTestId('action-save-as-doc').click();
     // wait for new editor
     editor.waitForElementState('hidden');
     await page.waitForSelector('page-editor');
@@ -349,7 +435,7 @@ test.describe('chat panel', () => {
     test('can be save chat to block when page mode', async ({ page }) => {
       const contents = (await collectChat(page)).map(m => m.content);
       expect(await getPageMode(page)).toBe('page');
-      await page.getByTestId('action-save-chat-to-block').click();
+      await page.getByTestId('action-save-as-block').click();
       const chatBlock = await page.waitForSelector('affine-edgeless-ai-chat');
       // should switch to edgeless mode
       expect(await getPageMode(page)).toBe('edgeless');
@@ -366,7 +452,7 @@ test.describe('chat panel', () => {
       const contents = (await collectChat(page)).map(m => m.content);
       await switchToEdgelessMode(page);
       expect(await getPageMode(page)).toBe('edgeless');
-      await page.getByTestId('action-save-chat-to-block').click();
+      await page.getByTestId('action-save-as-block').click();
       const chatBlock = await page.waitForSelector('affine-edgeless-ai-chat');
       expect(
         await Promise.all(
@@ -380,7 +466,7 @@ test.describe('chat panel', () => {
     test('can save chat to block and clear history', async ({ page }) => {
       await collectChat(page);
       expect(await getPageMode(page)).toBe('page');
-      await page.getByTestId('action-save-chat-to-block').click();
+      await page.getByTestId('action-save-as-block').click();
       await page.waitForSelector('affine-edgeless-ai-chat');
 
       await page.reload();
@@ -391,7 +477,7 @@ test.describe('chat panel', () => {
 
     test('chat in center peek', async ({ page }) => {
       const contents = (await collectChat(page)).map(m => m.content);
-      await page.getByTestId('action-save-chat-to-block').click();
+      await page.getByTestId('action-save-as-block').click();
       const chatBlock = await page.waitForSelector('affine-edgeless-ai-chat');
       // open chat in center peek
       await chatBlock.dblclick();
@@ -1026,7 +1112,7 @@ test.describe('chat with doc', () => {
     expect(await chipTitle.textContent()).toBe('Untitled');
     let chip = await page.getByTestId('chat-panel-chip');
     // oxlint-disable-next-line unicorn/prefer-dom-node-dataset
-    expect(await chip.getAttribute('data-state')).toBe('success');
+    expect(await chip.getAttribute('data-state')).toBe('finished');
 
     const editorTitle = await page.locator('doc-title .inline-editor').nth(0);
     await editorTitle.pressSequentially('AFFiNE AI', {
@@ -1048,7 +1134,7 @@ test.describe('chat with doc', () => {
 
     expect(await chipTitle.textContent()).toBe('AFFiNE AI');
     // oxlint-disable-next-line unicorn/prefer-dom-node-dataset
-    expect(await chip.getAttribute('data-state')).toBe('success');
+    expect(await chip.getAttribute('data-state')).toBe('finished');
 
     await typeChatSequentially(page, 'What is AFiAI?');
     await page.keyboard.press('Enter');
@@ -1071,6 +1157,6 @@ test.describe('chat with doc', () => {
     expect(await chipTitle.textContent()).toBe('AFFiNE AI');
     const chip2 = await page.getByTestId('chat-panel-chip');
     // oxlint-disable-next-line unicorn/prefer-dom-node-dataset
-    expect(await chip2.getAttribute('data-state')).toBe('success');
+    expect(await chip2.getAttribute('data-state')).toBe('finished');
   });
 });

@@ -115,43 +115,45 @@ export class ChatActionList extends LitElement {
           actions.filter(action => action.showWhen(host)),
           action => action.title,
           action => {
-            return html`<div class="action">
+            return html`<div
+              class="action"
+              @click=${async () => {
+                if (
+                  action.title === 'Insert below' &&
+                  this._selectionValue.length === 1 &&
+                  this._selectionValue[0].type === 'database'
+                ) {
+                  const element = this.host.view.getBlock(
+                    this._selectionValue[0].blockId
+                  );
+                  if (!element) return;
+                  await insertBelow(host, content, element);
+                  return;
+                }
+                const currentSelections = {
+                  text: this._currentTextSelection,
+                  blocks: this._currentBlockSelections,
+                  images: this._currentImageSelections,
+                };
+                const sessionId = await this.getSessionId();
+                const success = await action.handler(
+                  host,
+                  content,
+                  currentSelections,
+                  sessionId,
+                  messageId
+                );
+                if (success) {
+                  this.host.std.getOptional(NotificationProvider)?.notify({
+                    title: action.toast,
+                    accent: 'success',
+                    onClose: function (): void {},
+                  });
+                }
+              }}
+            >
               ${action.icon}
               <div
-                @click=${async () => {
-                  if (
-                    action.title === 'Insert below' &&
-                    this._selectionValue.length === 1 &&
-                    this._selectionValue[0].type === 'database'
-                  ) {
-                    const element = this.host.view.getBlock(
-                      this._selectionValue[0].blockId
-                    );
-                    if (!element) return;
-                    await insertBelow(host, content, element);
-                    return;
-                  }
-                  const currentSelections = {
-                    text: this._currentTextSelection,
-                    blocks: this._currentBlockSelections,
-                    images: this._currentImageSelections,
-                  };
-                  const sessionId = await this.getSessionId();
-                  const success = await action.handler(
-                    host,
-                    content,
-                    currentSelections,
-                    sessionId,
-                    messageId
-                  );
-                  if (success) {
-                    this.host.std.getOptional(NotificationProvider)?.notify({
-                      title: action.toast,
-                      accent: 'success',
-                      onClose: function (): void {},
-                    });
-                  }
-                }}
                 data-testid="action-${action.title
                   .toLowerCase()
                   .replaceAll(' ', '-')}"

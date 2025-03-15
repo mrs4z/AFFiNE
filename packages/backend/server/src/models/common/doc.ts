@@ -13,7 +13,13 @@ export interface Doc {
 
 export type DocEditor = Pick<User, 'id' | 'name' | 'avatarUrl'>;
 
+// TODO(@fengmk2): only used it inside the DocModel, use DocMode instead on the other places
 export enum PublicDocMode {
   Page,
   Edgeless,
+}
+
+export enum DocMode {
+  page = 'page',
+  edgeless = 'edgeless',
 }

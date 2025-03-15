@@ -35,7 +35,6 @@ const {
   STATIC_IP_NAME,
 } = process.env;
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const buildType = BUILD_TYPE || 'canary';
 
 const isProduction = buildType === 'stable';
@@ -136,7 +135,7 @@ const createHelmCommand = ({ isDryRun }) => {
       : isInternal
         ? 'internal'
         : 'dev';
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   const host = DEPLOY_HOST || CANARY_DEPLOY_HOST;
   const deployCommand = [
     `helm upgrade --install affine .github/helm/affine`,
@@ -183,6 +182,11 @@ const createHelmCommand = ({ isDryRun }) => {
     `--set        renderer.replicaCount=${replica.renderer}`,
     `--set-string doc.image.tag="${imageTag}"`,
     `--set        doc.app.host=${host}`,
+    `--set        doc.app.copilot.enabled=true`,
+    `--set-string doc.app.copilot.openai.key="${COPILOT_OPENAI_API_KEY}"`,
+    `--set-string doc.app.copilot.fal.key="${COPILOT_FAL_API_KEY}"`,
+    `--set-string doc.app.copilot.perplexity.key="${COPILOT_PERPLEXITY_API_KEY}"`,
+    `--set-string doc.app.copilot.unsplash.key="${COPILOT_UNSPLASH_API_KEY}"`,
     `--set        doc.replicaCount=${replica.doc}`,
     ...serviceAnnotations,
     ...resources,

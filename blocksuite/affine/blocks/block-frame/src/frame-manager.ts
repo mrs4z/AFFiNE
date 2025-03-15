@@ -40,9 +40,7 @@ export class FrameOverlay extends Overlay {
   private readonly _prevXYWH: SerializedXYWH | null = null;
 
   private get _frameManager() {
-    return this.gfx.std.get(
-      GfxExtensionIdentifier('frame-manager')
-    ) as EdgelessFrameManager;
+    return this.gfx.std.get(EdgelessFrameManagerIdentifier);
   }
 
   constructor(gfx: GfxController) {
@@ -129,6 +127,9 @@ export class FrameOverlay extends Overlay {
     });
   }
 }
+
+export const EdgelessFrameManagerIdentifier =
+  GfxExtensionIdentifier<EdgelessFrameManager>('frame-manager');
 
 export class EdgelessFrameManager extends GfxExtension {
   static override key = 'frame-manager';

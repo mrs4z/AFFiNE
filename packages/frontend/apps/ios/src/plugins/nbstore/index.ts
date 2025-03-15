@@ -311,4 +311,29 @@ export const NbStoreNativeDBApis: NativeDBApis = {
       id,
     });
   },
+  getBlobUploadedAt: async function (
+    id: string,
+    peer: string,
+    blobId: string
+  ): Promise<Date | null> {
+    const result = await NbStore.getBlobUploadedAt({
+      id,
+      peer,
+      blobId,
+    });
+    return result.uploadedAt ? new Date(result.uploadedAt) : null;
+  },
+  setBlobUploadedAt: async function (
+    id: string,
+    peer: string,
+    blobId: string,
+    uploadedAt: Date | null
+  ): Promise<void> {
+    await NbStore.setBlobUploadedAt({
+      id,
+      peer,
+      blobId,
+      uploadedAt: uploadedAt ? uploadedAt.getTime() : null,
+    });
+  },
 };

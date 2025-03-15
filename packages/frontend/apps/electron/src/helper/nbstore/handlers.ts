@@ -45,4 +45,6 @@ export const nbstoreHandlers: NativeDBApis = {
   getPeerPushedClock: POOL.getPeerPushedClock.bind(POOL),
   setPeerPushedClock: POOL.setPeerPushedClock.bind(POOL),
   clearClocks: POOL.clearClocks.bind(POOL),
+  setBlobUploadedAt: POOL.setBlobUploadedAt.bind(POOL),
+  getBlobUploadedAt: POOL.getBlobUploadedAt.bind(POOL),
 };

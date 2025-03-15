@@ -451,6 +451,38 @@ Could you make a new website based on these notes and send back just the html fi
     ) => {
       return client.getContextDocsAndFiles(workspaceId, sessionId, contextId);
     },
+    pollContextDocsAndFiles: async (
+      workspaceId: string,
+      sessionId: string,
+      contextId: string,
+      onPoll: (
+        result: BlockSuitePresets.AIDocsAndFilesContext | undefined
+      ) => void,
+      abortSignal: AbortSignal
+    ) => {
+      const poll = async () => {
+        const result = await client.getContextDocsAndFiles(
+          workspaceId,
+          sessionId,
+          contextId
+        );
+        onPoll(result);
+      };
+
+      let attempts = 0;
+      const MIN_INTERVAL = 1000;
+      const MAX_INTERVAL = 30 * 1000;
+
+      while (!abortSignal.aborted) {
+        await poll();
+        const interval = Math.min(
+          MIN_INTERVAL * Math.pow(1.5, attempts),
+          MAX_INTERVAL
+        );
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, interval));
+      }
+    },
     matchContext: async (
       contextId: string,
       content: string,

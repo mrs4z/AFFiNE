@@ -7,6 +7,7 @@ import {
 } from '@affine/nbstore';
 import {
   IndexedDBBlobStorage,
+  IndexedDBBlobSyncStorage,
   IndexedDBDocStorage,
   IndexedDBDocSyncStorage,
 } from '@affine/nbstore/idb';
@@ -16,6 +17,7 @@ import {
 } from '@affine/nbstore/idb/v1';
 import {
   SqliteBlobStorage,
+  SqliteBlobSyncStorage,
   SqliteDocStorage,
   SqliteDocSyncStorage,
 } from '@affine/nbstore/sqlite';
@@ -101,6 +103,10 @@ class LocalWorkspaceFlavourProvider implements WorkspaceFlavourProvider {
     BUILD_CONFIG.isElectron || BUILD_CONFIG.isIOS
       ? SqliteDocSyncStorage
       : IndexedDBDocSyncStorage;
+  BlobSyncStorageType =
+    BUILD_CONFIG.isElectron || BUILD_CONFIG.isIOS
+      ? SqliteBlobSyncStorage
+      : IndexedDBBlobSyncStorage;
 
   async deleteWorkspace(id: string): Promise<void> {
     setLocalWorkspaceIds(ids => ids.filter(x => x !== id));
@@ -315,6 +321,14 @@ class LocalWorkspaceFlavourProvider implements WorkspaceFlavourProvider {
         },
         blob: {
           name: this.BlobStorageType.identifier,
+          opts: {
+            flavour: this.flavour,
+            type: 'workspace',
+            id: workspaceId,
+          },
+        },
+        blobSync: {
+          name: this.BlobSyncStorageType.identifier,
           opts: {
             flavour: this.flavour,
             type: 'workspace',

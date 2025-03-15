@@ -63,5 +63,10 @@ export class WorkspaceEngine extends Entity<{
     this.doc.addPriority(rootDoc.guid, 100);
     this.doc.start();
     this.disposables.push(() => this.doc.stop());
+
+    // fully migrate blobs from v1 to v2, its won't do anything if v1 storage is not exist
+    store.blobFrontend.fullDownload('v1').catch(() => {
+      // should never reach here
+    });
   }
 }

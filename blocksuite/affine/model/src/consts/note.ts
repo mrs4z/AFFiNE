@@ -8,6 +8,9 @@ export const NOTE_MIN_HEIGHT = 92;
 export const DEFAULT_NOTE_WIDTH = 450 + 24 * 2;
 export const DEFAULT_NOTE_HEIGHT = NOTE_MIN_HEIGHT;
 
+export const DEFAULT_PAGE_BLOCK_WIDTH = 800;
+export const DEFAULT_PAGE_BLOCK_HEIGHT = DEFAULT_NOTE_HEIGHT;
+
 export enum NoteShadow {
   Box = '--affine-note-shadow-box',
   Film = '--affine-note-shadow-film',

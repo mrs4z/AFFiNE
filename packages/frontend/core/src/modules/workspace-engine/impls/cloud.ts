@@ -13,6 +13,7 @@ import type {
 import { CloudBlobStorage, StaticCloudDocStorage } from '@affine/nbstore/cloud';
 import {
   IndexedDBBlobStorage,
+  IndexedDBBlobSyncStorage,
   IndexedDBDocStorage,
   IndexedDBDocSyncStorage,
 } from '@affine/nbstore/idb';
@@ -22,6 +23,7 @@ import {
 } from '@affine/nbstore/idb/v1';
 import {
   SqliteBlobStorage,
+  SqliteBlobSyncStorage,
   SqliteDocStorage,
   SqliteDocSyncStorage,
 } from '@affine/nbstore/sqlite';
@@ -115,6 +117,10 @@ class CloudWorkspaceFlavourProvider implements WorkspaceFlavourProvider {
     BUILD_CONFIG.isElectron || BUILD_CONFIG.isIOS
       ? SqliteDocSyncStorage
       : IndexedDBDocSyncStorage;
+  BlobSyncStorageType =
+    BUILD_CONFIG.isElectron || BUILD_CONFIG.isIOS
+      ? SqliteBlobSyncStorage
+      : IndexedDBBlobSyncStorage;
 
   async deleteWorkspace(id: string): Promise<void> {
     await this.graphqlService.gql({
@@ -433,6 +439,14 @@ class CloudWorkspaceFlavourProvider implements WorkspaceFlavourProvider {
         },
         docSync: {
           name: this.DocSyncStorageType.identifier,
+          opts: {
+            flavour: this.flavour,
+            type: 'workspace',
+            id: workspaceId,
+          },
+        },
+        blobSync: {
+          name: this.BlobSyncStorageType.identifier,
           opts: {
             flavour: this.flavour,
             type: 'workspace',

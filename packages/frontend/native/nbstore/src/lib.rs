@@ -1,9 +1,10 @@
 pub mod blob;
+pub mod blob_sync;
 pub mod doc;
+pub mod doc_sync;
 pub mod error;
 pub mod pool;
 pub mod storage;
-pub mod sync;
 
 use chrono::NaiveDateTime;
 use napi::bindgen_prelude::*;
@@ -401,6 +402,38 @@ impl DocStoragePool {
   pub async fn clear_clocks(&self, universal_id: String) -> Result<()> {
     self.get(universal_id).await?.clear_clocks().await?;
     Ok(())
+  }
+
+  #[napi]
+  pub async fn set_blob_uploaded_at(
+    &self,
+    universal_id: String,
+    peer: String,
+    blob_id: String,
+    uploaded_at: Option<NaiveDateTime>,
+  ) -> Result<()> {
+    self
+      .get(universal_id)
+      .await?
+      .set_blob_uploaded_at(peer, blob_id, uploaded_at)
+      .await?;
+    Ok(())
+  }
+
+  #[napi]
+  pub async fn get_blob_uploaded_at(
+    &self,
+    universal_id: String,
+    peer: String,
+    blob_id: String,
+  ) -> Result<Option<NaiveDateTime>> {
+    let result = self
+      .get(universal_id)
+      .await?
+      .get_blob_uploaded_at(peer, blob_id)
+      .await?;
+
+    Ok(result)
   }
 }
 

@@ -242,6 +242,11 @@ declare global {
       ): AIActionTextResponse<T>;
     }
 
+    type AIDocsAndFilesContext = {
+      docs: CopilotContextDoc[];
+      files: CopilotContextFile[];
+    };
+
     interface AIContextService {
       createContext: (
         workspaceId: string,
@@ -274,13 +279,14 @@ declare global {
         workspaceId: string,
         sessionId: string,
         contextId: string
-      ) => Promise<
-        | {
-            docs: Array<CopilotContextDoc>;
-            files: Array<CopilotContextFile>;
-          }
-        | undefined
-      >;
+      ) => Promise<AIDocsAndFilesContext | undefined>;
+      pollContextDocsAndFiles: (
+        workspaceId: string,
+        sessionId: string,
+        contextId: string,
+        onPoll: (result: AIDocsAndFilesContext | undefined) => void,
+        abortSignal: AbortSignal
+      ) => Promise<void>;
       matchContext: (
         contextId: string,
         content: string,

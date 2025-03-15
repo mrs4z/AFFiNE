@@ -8,7 +8,7 @@ import {
   DocNotFound,
   InvalidHistoryTimestamp,
 } from '../../base';
-import { Models, PublicDocMode } from '../../models';
+import { DocMode, Models, PublicDocMode } from '../../models';
 import { CurrentUser, Public } from '../auth';
 import { PgWorkspaceDocStorageAdapter } from '../doc';
 import { DocReader } from '../doc/reader';
@@ -111,7 +111,9 @@ export class WorkspacesController {
         }
       );
       const publishPageMode =
-        docMeta?.mode === PublicDocMode.Edgeless ? 'edgeless' : 'page';
+        docMeta?.mode === PublicDocMode.Edgeless
+          ? DocMode.edgeless
+          : DocMode.page;
 
       res.setHeader('publish-mode', publishPageMode);
     }

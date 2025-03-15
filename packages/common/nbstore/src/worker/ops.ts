@@ -10,7 +10,7 @@ import type {
   StorageType,
 } from '../storage';
 import type { AwarenessRecord } from '../storage/awareness';
-import type { BlobSyncState } from '../sync/blob';
+import type { BlobSyncBlobState, BlobSyncState } from '../sync/blob';
 import type { DocSyncDocState, DocSyncState } from '../sync/doc';
 
 type StorageInitOptions = Values<{
@@ -45,22 +45,6 @@ interface GroupedWorkerOps {
     listBlobs: [void, ListedBlobRecord[]];
   };
 
-  docSyncStorage: {
-    getPeerPulledRemoteClocks: [{ peer: string }, DocClocks];
-    getPeerPulledRemoteClock: [
-      { peer: string; docId: string },
-      DocClock | null,
-    ];
-    setPeerPulledRemoteClock: [{ peer: string; clock: DocClock }, void];
-    getPeerRemoteClocks: [{ peer: string }, DocClocks];
-    getPeerRemoteClock: [{ peer: string; docId: string }, DocClock | null];
-    setPeerRemoteClock: [{ peer: string; clock: DocClock }, void];
-    getPeerPushedClocks: [{ peer: string }, DocClocks];
-    getPeerPushedClock: [{ peer: string; docId: string }, DocClock | null];
-    setPeerPushedClock: [{ peer: string; clock: DocClock }, void];
-    clearClocks: [void, void];
-  };
-
   awarenessStorage: {
     update: [{ awareness: AwarenessRecord; origin?: string }, void];
     subscribeUpdate: [
@@ -85,13 +69,11 @@ interface GroupedWorkerOps {
   };
 
   blobSync: {
-    downloadBlob: [string, BlobRecord | null];
-    uploadBlob: [BlobRecord, void];
-    fullDownload: [void, void];
-    fullUpload: [void, void];
-    setMaxBlobSize: [number, void];
-    onReachedMaxBlobSize: [void, number];
     state: [void, BlobSyncState];
+    blobState: [string, BlobSyncBlobState];
+    downloadBlob: [string, void];
+    uploadBlob: [BlobRecord, void];
+    fullDownload: [string | null, void];
   };
 
   awarenessSync: {

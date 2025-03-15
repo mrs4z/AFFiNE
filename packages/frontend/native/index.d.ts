@@ -59,6 +59,8 @@ export declare class DocStoragePool {
   getPeerPushedClock(universalId: string, peer: string, docId: string): Promise<DocClock | null>
   setPeerPushedClock(universalId: string, peer: string, docId: string, clock: Date): Promise<void>
   clearClocks(universalId: string): Promise<void>
+  setBlobUploadedAt(universalId: string, peer: string, blobId: string, uploadedAt?: Date | undefined | null): Promise<void>
+  getBlobUploadedAt(universalId: string, peer: string, blobId: string): Promise<Date | null>
 }
 
 export declare class Mp3Encoder {

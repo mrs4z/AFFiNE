@@ -1,4 +1,4 @@
-import type { EdgelessFrameManager } from '@blocksuite/affine-block-frame';
+import { EdgelessFrameManagerIdentifier } from '@blocksuite/affine-block-frame';
 import {
   EdgelessCRUDIdentifier,
   EdgelessLegacySlotIdentifier,
@@ -25,7 +25,6 @@ import type {
 import {
   GfxBlockElementModel,
   GfxControllerIdentifier,
-  GfxExtensionIdentifier,
   isGfxGroupCompatibleModel,
   ZOOM_MAX,
   ZOOM_MIN,
@@ -76,9 +75,7 @@ export class EdgelessRootService extends RootService implements SurfaceContext {
   }
 
   get frame() {
-    return this.std.get(
-      GfxExtensionIdentifier('frame-manager')
-    ) as EdgelessFrameManager;
+    return this.std.get(EdgelessFrameManagerIdentifier);
   }
 
   /**

@@ -9,6 +9,7 @@ import { apis } from './db';
 export class SqliteV1BlobStorage extends BlobStorageBase {
   static identifier = 'SqliteV1BlobStorage';
   override connection = new DummyConnection();
+  override readonly isReadonly = true;
 
   constructor(private readonly options: { type: SpaceType; id: string }) {
     super();

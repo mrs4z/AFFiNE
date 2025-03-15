@@ -170,25 +170,6 @@ class StoreConsumer {
         this.blobStorage.delete(key, permanently),
       'blobStorage.releaseBlobs': () => this.blobStorage.release(),
       'blobStorage.listBlobs': () => this.blobStorage.list(),
-      'docSyncStorage.clearClocks': () => this.docSyncStorage.clearClocks(),
-      'docSyncStorage.getPeerPulledRemoteClock': ({ peer, docId }) =>
-        this.docSyncStorage.getPeerPulledRemoteClock(peer, docId),
-      'docSyncStorage.getPeerPulledRemoteClocks': ({ peer }) =>
-        this.docSyncStorage.getPeerPulledRemoteClocks(peer),
-      'docSyncStorage.setPeerPulledRemoteClock': ({ peer, clock }) =>
-        this.docSyncStorage.setPeerPulledRemoteClock(peer, clock),
-      'docSyncStorage.getPeerRemoteClock': ({ peer, docId }) =>
-        this.docSyncStorage.getPeerRemoteClock(peer, docId),
-      'docSyncStorage.getPeerRemoteClocks': ({ peer }) =>
-        this.docSyncStorage.getPeerRemoteClocks(peer),
-      'docSyncStorage.setPeerRemoteClock': ({ peer, clock }) =>
-        this.docSyncStorage.setPeerRemoteClock(peer, clock),
-      'docSyncStorage.getPeerPushedClock': ({ peer, docId }) =>
-        this.docSyncStorage.getPeerPushedClock(peer, docId),
-      'docSyncStorage.getPeerPushedClocks': ({ peer }) =>
-        this.docSyncStorage.getPeerPushedClocks(peer),
-      'docSyncStorage.setPeerPushedClock': ({ peer, clock }) =>
-        this.docSyncStorage.setPeerPushedClock(peer, clock),
       'awarenessStorage.update': ({ awareness, origin }) =>
         this.awarenessStorage.update(awareness, origin),
       'awarenessStorage.subscribeUpdate': docId =>
@@ -232,20 +213,23 @@ class StoreConsumer {
           return () => undo();
         }),
       'docSync.resetSync': () => this.docSync.resetSync(),
+      'blobSync.state': () => this.blobSync.state$,
+      'blobSync.blobState': blobId => this.blobSync.blobState$(blobId),
       'blobSync.downloadBlob': key => this.blobSync.downloadBlob(key),
       'blobSync.uploadBlob': blob => this.blobSync.uploadBlob(blob),
-      'blobSync.fullDownload': (_, { signal }) =>
-        this.blobSync.fullDownload(signal),
-      'blobSync.fullUpload': (_, { signal }) =>
-        this.blobSync.fullUpload(signal),
-      'blobSync.state': () => this.blobSync.state$,
-      'blobSync.setMaxBlobSize': size => this.blobSync.setMaxBlobSize(size),
-      'blobSync.onReachedMaxBlobSize': () =>
+      'blobSync.fullDownload': peerId =>
         new Observable(subscriber => {
-          const undo = this.blobSync.onReachedMaxBlobSize(byteSize => {
-            subscriber.next(byteSize);
-          });
-          return () => undo();
+          const abortController = new AbortController();
+          this.blobSync
+            .fullDownload(peerId ?? undefined, abortController.signal)
+            .then(() => {
+              subscriber.next();
+              subscriber.complete();
+            })
+            .catch(error => {
+              subscriber.error(error);
+            });
+          return () => abortController.abort(MANUALLY_STOP);
         }),
       'awarenessSync.update': ({ awareness, origin }) =>
         this.awarenessSync.update(awareness, origin),

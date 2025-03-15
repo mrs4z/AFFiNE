@@ -9,6 +9,7 @@ import { z } from 'zod';
 
 import { PaginationInput } from '../base';
 import { BaseModel } from './base';
+import { DocMode } from './common';
 
 export { NotificationLevel, NotificationType };
 export type { Notification };
@@ -30,10 +31,14 @@ export const MentionDocSchema = z.object({
   id: IdSchema,
   // Allow empty string, will display as `Untitled` at frontend
   title: z.string().trim().max(255),
+  mode: z.nativeEnum(DocMode),
   // blockId or elementId is required at least one
   blockId: IdSchema.optional(),
   elementId: IdSchema.optional(),
 });
+
+export type MentionDoc = z.infer<typeof MentionDocSchema>;
+export type MentionDocCreate = z.input<typeof MentionDocSchema>;
 
 const MentionNotificationBodySchema = z.object({
   workspaceId: IdSchema,

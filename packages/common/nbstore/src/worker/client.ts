@@ -176,6 +176,7 @@ class WorkerBlobStorage implements BlobStorage {
   constructor(private readonly client: OpClient<WorkerOps>) {}
 
   readonly storageType = 'blob';
+  readonly isReadonly = false;
 
   get(key: string, _signal?: AbortSignal): Promise<BlobRecord | null> {
     return this.client.call('blobStorage.getBlob', key);
@@ -233,47 +234,38 @@ class WorkerBlobSync implements BlobSync {
   get state$() {
     return this.client.ob$('blobSync.state');
   }
-  setMaxBlobSize(size: number): void {
-    this.client.call('blobSync.setMaxBlobSize', size).catch(err => {
-      console.error('error setting max blob size', err);
-    });
+  blobState$(blobId: string) {
+    return this.client.ob$('blobSync.blobState', blobId);
   }
-  onReachedMaxBlobSize(cb: (byteSize: number) => void): () => void {
-    const subscription = this.client
-      .ob$('blobSync.onReachedMaxBlobSize')
-      .subscribe(byteSize => {
-        cb(byteSize);
-      });
-    return () => {
-      subscription.unsubscribe();
-    };
-  }
-  downloadBlob(
-    blobId: string,
-    _signal?: AbortSignal
-  ): Promise<BlobRecord | null> {
+
+  downloadBlob(blobId: string): Promise<void> {
     return this.client.call('blobSync.downloadBlob', blobId);
   }
-  uploadBlob(blob: BlobRecord, _signal?: AbortSignal): Promise<void> {
+  uploadBlob(blob: BlobRecord): Promise<void> {
     return this.client.call('blobSync.uploadBlob', blob);
   }
-  fullDownload(signal?: AbortSignal): Promise<void> {
-    const download = this.client.call('blobSync.fullDownload');
+  fullDownload(peerId?: string, signal?: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const abortListener = () => {
+        reject(signal?.reason);
+        subscription.unsubscribe();
+      };
 
-    signal?.addEventListener('abort', () => {
-      download.cancel();
+      signal?.addEventListener('abort', abortListener);
+
+      const subscription = this.client
+        .ob$('blobSync.fullDownload', peerId ?? null)
+        .subscribe({
+          next() {
+            signal?.removeEventListener('abort', abortListener);
+            resolve();
+          },
+          error(err) {
+            signal?.removeEventListener('abort', abortListener);
+            reject(err);
+          },
+        });
     });
-
-    return download;
-  }
-  fullUpload(signal?: AbortSignal): Promise<void> {
-    const upload = this.client.call('blobSync.fullUpload');
-
-    signal?.addEventListener('abort', () => {
-      upload.cancel();
-    });
-
-    return upload;
   }
 }
 

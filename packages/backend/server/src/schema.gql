@@ -300,6 +300,12 @@ type DocHistoryType {
   workspaceId: String!
 }
 
+"""Doc mode"""
+enum DocMode {
+  edgeless
+  page
+}
+
 type DocNotFoundDataType {
   docId: String!
   spaceId: String!
@@ -755,6 +761,7 @@ input MentionDocInput {
   """The element id in the doc"""
   elementId: String
   id: String!
+  mode: DocMode!
   title: String!
 }
 
@@ -762,6 +769,7 @@ type MentionDocType {
   blockId: String
   elementId: String
   id: String!
+  mode: DocMode!
   title: String!
 }
 

@@ -1,13 +1,31 @@
-import { Container, type ServiceProvider } from '@blocksuite/global/di';
+import {
+  Container,
+  createIdentifier,
+  type ServiceProvider,
+} from '@blocksuite/global/di';
 import type { ExtensionType } from '@blocksuite/store';
 
-import { BlockPainterProvider } from '../extension';
 import type {
   BlockLayoutPainter,
   HostToWorkerMessage,
   ViewportLayout,
   WorkerToHostMessage,
 } from '../types';
+
+export const BlockPainterProvider = createIdentifier<BlockLayoutPainter>(
+  'block-painter-provider'
+);
+
+export const BlockLayoutPainterExtension = (
+  type: string,
+  painter: new () => BlockLayoutPainter
+): ExtensionType => {
+  return {
+    setup: di => {
+      di.addImpl(BlockPainterProvider(type), painter);
+    },
+  };
+};
 
 export class ViewportLayoutPainter {
   private readonly canvas: OffscreenCanvas = new OffscreenCanvas(0, 0);

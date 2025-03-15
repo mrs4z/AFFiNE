@@ -1,6 +1,8 @@
 import {
+  type DocMode,
   type ListNotificationsQuery,
   listNotificationsQuery,
+  mentionUserMutation,
   notificationCountQuery,
   type PaginationInput,
   readNotificationMutation,
@@ -81,5 +83,29 @@ export class NotificationStore extends Store {
         id,
       },
     });
+  }
+
+  async mentionUser(
+    userId: string,
+    workspaceId: string,
+    doc: {
+      id: string;
+      title: string;
+      blockId?: string;
+      elementId?: string;
+      mode: DocMode;
+    }
+  ) {
+    const result = await this.gqlService.gql({
+      query: mentionUserMutation,
+      variables: {
+        input: {
+          userId,
+          workspaceId,
+          doc,
+        },
+      },
+    });
+    return result.mentionUser;
   }
 }

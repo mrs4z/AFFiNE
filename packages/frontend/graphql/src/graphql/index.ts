@@ -179,32 +179,6 @@ export const addContextFileMutation = {
   file: true,
 };
 
-export const listContextFilesQuery = {
-  id: 'listContextFilesQuery' as const,
-  op: 'listContextFiles',
-  query: `query listContextFiles($workspaceId: String!, $sessionId: String!, $contextId: String!) {
-  currentUser {
-    copilot(workspaceId: $workspaceId) {
-      contexts(sessionId: $sessionId, contextId: $contextId) {
-        docs {
-          id
-          createdAt
-        }
-        files {
-          id
-          name
-          blobId
-          chunkSize
-          error
-          status
-          createdAt
-        }
-      }
-    }
-  }
-}`,
-};
-
 export const matchContextQuery = {
   id: 'matchContextQuery' as const,
   op: 'matchContext',
@@ -232,10 +206,10 @@ export const removeContextFileMutation = {
 }`,
 };
 
-export const listContextDocsAndFilesQuery = {
-  id: 'listContextDocsAndFilesQuery' as const,
-  op: 'listContextDocsAndFiles',
-  query: `query listContextDocsAndFiles($workspaceId: String!, $sessionId: String!, $contextId: String!) {
+export const listContextObjectQuery = {
+  id: 'listContextObjectQuery' as const,
+  op: 'listContextObject',
+  query: `query listContextObject($workspaceId: String!, $sessionId: String!, $contextId: String!) {
   currentUser {
     copilot(workspaceId: $workspaceId) {
       contexts(sessionId: $sessionId, contextId: $contextId) {
@@ -1130,6 +1104,14 @@ export const listUsersQuery = {
     emailVerified
     avatarUrl
   }
+}`,
+};
+
+export const mentionUserMutation = {
+  id: 'mentionUserMutation' as const,
+  op: 'mentionUser',
+  query: `mutation mentionUser($input: MentionInput!) {
+  mentionUser(input: $input)
 }`,
 };
 

@@ -1,6 +1,6 @@
-import type {
-  EdgelessFrameManager,
-  FrameOverlay,
+import {
+  EdgelessFrameManagerIdentifier,
+  type FrameOverlay,
 } from '@blocksuite/affine-block-frame';
 import { OverlayIdentifier } from '@blocksuite/affine-block-surface';
 import type { FrameBlockModel } from '@blocksuite/affine-model';
@@ -9,11 +9,7 @@ import {
   TelemetryProvider,
 } from '@blocksuite/affine-shared/services';
 import type { PointerEventState } from '@blocksuite/block-std';
-import {
-  BaseTool,
-  getTopElements,
-  GfxExtensionIdentifier,
-} from '@blocksuite/block-std/gfx';
+import { BaseTool, getTopElements } from '@blocksuite/block-std/gfx';
 import type { IPoint, IVec } from '@blocksuite/global/gfx';
 import { Bound, Vec } from '@blocksuite/global/gfx';
 import { Text } from '@blocksuite/store';
@@ -27,9 +23,7 @@ export class FrameTool extends BaseTool {
   private _startPoint: IVec | null = null;
 
   get frameManager() {
-    return this.std.get(
-      GfxExtensionIdentifier('frame-manager')
-    ) as EdgelessFrameManager;
+    return this.std.get(EdgelessFrameManagerIdentifier);
   }
 
   get frameOverlay() {

@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+
 import {
   applyDecorators,
   Body,
@@ -130,7 +132,12 @@ function gql(app: INestApplication, query: string) {
   return request(app.getHttpServer())
     .post('/graphql')
     .send({ query })
-    .expect(200);
+    .expect(res => {
+      assert(
+        res.status === 200 || res.status === 400,
+        'GraphQL query should return 200 or 400'
+      );
+    });
 }
 
 test.before(async ({ context }) => {
@@ -196,6 +203,15 @@ test('should be able to handle validation error in graphql query', async t => {
   );
   t.is(err.extensions.status, HttpStatus.BAD_REQUEST);
   t.is(err.extensions.name, 'VALIDATION_ERROR');
+  t.true(t.context.logger.error.notCalled);
+});
+
+test('should be able to handle graphql input error', async t => {
+  const res = await gql(t.context.app, `mutation { validate(email: 123) }`);
+  const err = res.body.errors[0];
+  t.is(err.message, 'String cannot represent a non string value: 123');
+  t.is(err.extensions.status, HttpStatus.BAD_REQUEST);
+  t.is(err.extensions.name, 'GRAPHQL_BAD_REQUEST');
   t.true(t.context.logger.error.notCalled);
 });
 

@@ -75,6 +75,45 @@ spec:
             value: "{{ .Values.app.host }}"
           - name: AFFINE_SERVER_HTTPS
             value: "{{ .Values.app.https }}"
+          {{ if .Values.global.objectStorage.r2.enabled }}
+          - name: R2_OBJECT_STORAGE_ACCOUNT_ID
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.global.objectStorage.r2.secretName }}"
+                key: accountId
+          - name: R2_OBJECT_STORAGE_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.global.objectStorage.r2.secretName }}"
+                key: accessKeyId
+          - name: R2_OBJECT_STORAGE_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.global.objectStorage.r2.secretName }}"
+                key: secretAccessKey
+          {{ end }}
+          {{ if .Values.app.copilot.enabled }}
+          - name: COPILOT_OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.app.copilot.secretName }}"
+                key: openaiSecret
+          - name: COPILOT_FAL_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.app.copilot.secretName }}"
+                key: falSecret
+          - name: COPILOT_PERPLEXITY_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.app.copilot.secretName }}"
+                key: perplexitySecret
+          - name: COPILOT_UNSPLASH_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.app.copilot.secretName }}"
+                key: unsplashSecret
+          {{ end }}
           ports:
             - name: http
               containerPort: {{ .Values.global.docService.port }}

@@ -12,7 +12,6 @@ import debounce from 'lodash-es/debounce';
 import {
   debugLog,
   getViewportLayout,
-  initTweakpane,
   paintPlaceholder,
   syncCanvasSize,
 } from './renderer-utils';
@@ -83,7 +82,6 @@ export class ViewportTurboRendererExtension extends GfxExtension {
     const mountPoint = document.querySelector('.affine-edgeless-viewport');
     if (mountPoint) {
       mountPoint.append(this.canvas);
-      initTweakpane(this, mountPoint as HTMLElement);
     }
 
     const subscription = this.viewport.elementReady.subscribe(element => {

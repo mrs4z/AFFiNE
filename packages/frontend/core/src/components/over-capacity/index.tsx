@@ -33,8 +33,8 @@ export const OverCapacityNotification = () => {
   useEffect(() => {
     const disposableOverCapacity =
       currentWorkspace.engine.blob.state$.subscribe(
-        debounce(({ isStorageOverCapacity }: BlobSyncState) => {
-          const isOver = isStorageOverCapacity;
+        debounce(({ overCapacity }: BlobSyncState) => {
+          const isOver = overCapacity;
           if (!isOver) {
             return;
           }

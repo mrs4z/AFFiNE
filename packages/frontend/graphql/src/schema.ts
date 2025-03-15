@@ -385,6 +385,12 @@ export interface DocHistoryType {
   workspaceId: Scalars['String']['output'];
 }
 
+/** Doc mode */
+export enum DocMode {
+  edgeless = 'edgeless',
+  page = 'page',
+}
+
 export interface DocNotFoundDataType {
   __typename?: 'DocNotFoundDataType';
   docId: Scalars['String']['output'];
@@ -889,6 +895,7 @@ export interface MentionDocInput {
   /** The element id in the doc */
   elementId?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
+  mode: DocMode;
   title: Scalars['String']['input'];
 }
 
@@ -897,6 +904,7 @@ export interface MentionDocType {
   blockId: Maybe<Scalars['String']['output']>;
   elementId: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  mode: DocMode;
   title: Scalars['String']['output'];
 }
 
@@ -2363,40 +2371,6 @@ export type AddContextFileMutation = {
   };
 };
 
-export type ListContextFilesQueryVariables = Exact<{
-  workspaceId: Scalars['String']['input'];
-  sessionId: Scalars['String']['input'];
-  contextId: Scalars['String']['input'];
-}>;
-
-export type ListContextFilesQuery = {
-  __typename?: 'Query';
-  currentUser: {
-    __typename?: 'UserType';
-    copilot: {
-      __typename?: 'Copilot';
-      contexts: Array<{
-        __typename?: 'CopilotContext';
-        docs: Array<{
-          __typename?: 'CopilotContextDoc';
-          id: string;
-          createdAt: number;
-        }>;
-        files: Array<{
-          __typename?: 'CopilotContextFile';
-          id: string;
-          name: string;
-          blobId: string;
-          chunkSize: number;
-          error: string | null;
-          status: ContextEmbedStatus;
-          createdAt: number;
-        }>;
-      }>;
-    };
-  } | null;
-};
-
 export type MatchContextQueryVariables = Exact<{
   contextId: Scalars['String']['input'];
   content: Scalars['String']['input'];
@@ -2432,13 +2406,13 @@ export type RemoveContextFileMutation = {
   removeContextFile: boolean;
 };
 
-export type ListContextDocsAndFilesQueryVariables = Exact<{
+export type ListContextObjectQueryVariables = Exact<{
   workspaceId: Scalars['String']['input'];
   sessionId: Scalars['String']['input'];
   contextId: Scalars['String']['input'];
 }>;
 
-export type ListContextDocsAndFilesQuery = {
+export type ListContextObjectQuery = {
   __typename?: 'Query';
   currentUser: {
     __typename?: 'UserType';
@@ -3450,6 +3424,15 @@ export type ListUsersQuery = {
   }>;
 };
 
+export type MentionUserMutationVariables = Exact<{
+  input: MentionInput;
+}>;
+
+export type MentionUserMutation = {
+  __typename?: 'Mutation';
+  mentionUser: string;
+};
+
 export type NotificationCountQueryVariables = Exact<{ [key: string]: never }>;
 
 export type NotificationCountQuery = {
@@ -4029,19 +4012,14 @@ export type Queries =
       response: ListBlobsQuery;
     }
   | {
-      name: 'listContextFilesQuery';
-      variables: ListContextFilesQueryVariables;
-      response: ListContextFilesQuery;
-    }
-  | {
       name: 'matchContextQuery';
       variables: MatchContextQueryVariables;
       response: MatchContextQuery;
     }
   | {
-      name: 'listContextDocsAndFilesQuery';
-      variables: ListContextDocsAndFilesQueryVariables;
-      response: ListContextDocsAndFilesQuery;
+      name: 'listContextObjectQuery';
+      variables: ListContextObjectQueryVariables;
+      response: ListContextObjectQuery;
     }
   | {
       name: 'listContextQuery';
@@ -4464,6 +4442,11 @@ export type Mutations =
       name: 'leaveWorkspaceMutation';
       variables: LeaveWorkspaceMutationVariables;
       response: LeaveWorkspaceMutation;
+    }
+  | {
+      name: 'mentionUserMutation';
+      variables: MentionUserMutationVariables;
+      response: MentionUserMutation;
     }
   | {
       name: 'publishPageMutation';

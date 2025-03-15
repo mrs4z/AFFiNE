@@ -24,6 +24,7 @@ export class Sync {
     const doc = storages.local.get('doc');
     const blob = storages.local.get('blob');
     const docSync = storages.local.get('docSync');
+    const blobSync = storages.local.get('blobSync');
     const awareness = storages.local.get('awareness');
 
     this.doc = new DocSyncImpl(
@@ -38,15 +39,18 @@ export class Sync {
       },
       docSync
     );
-    this.blob = new BlobSyncImpl({
-      local: blob,
-      remotes: Object.fromEntries(
-        Object.entries(storages.remotes).map(([peerId, remote]) => [
-          peerId,
-          remote.get('blob'),
-        ])
-      ),
-    });
+    this.blob = new BlobSyncImpl(
+      {
+        local: blob,
+        remotes: Object.fromEntries(
+          Object.entries(storages.remotes).map(([peerId, remote]) => [
+            peerId,
+            remote.get('blob'),
+          ])
+        ),
+      },
+      blobSync
+    );
     this.awareness = new AwarenessSyncImpl({
       local: awareness,
       remotes: Object.fromEntries(

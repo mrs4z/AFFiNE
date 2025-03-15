@@ -226,7 +226,7 @@ export class ChatPanelInput extends SignalWatcher(WithDisposable(LitElement)) {
   private get _isNetworkDisabled() {
     return (
       !!this.chatContextValue.images.length ||
-      !!this.chatContextValue.chips.filter(chip => chip.state === 'success')
+      !!this.chatContextValue.chips.filter(chip => chip.state === 'finished')
         .length
     );
   }
@@ -561,7 +561,7 @@ export class ChatPanelInput extends SignalWatcher(WithDisposable(LitElement)) {
       : [];
     const contexts = this.chatContextValue.chips.reduce(
       (acc, chip, index) => {
-        if (chip.state !== 'success') {
+        if (chip.state !== 'finished') {
           return acc;
         }
         if (isDocChip(chip) && !!chip.markdown?.value) {

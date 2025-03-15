@@ -13,6 +13,7 @@ import { GraphQLError } from 'graphql';
 
 import { Config } from '../config';
 import { UserFriendlyError } from '../error';
+import { isGraphQLBadRequest, mapAnyError } from '../nestjs/exception';
 import { GQLLoggerPlugin } from './logger-plugin';
 
 export type GraphqlContext = {
@@ -64,6 +65,15 @@ export type GraphqlContext = {
               // @ts-expect-error allow assign
               formattedError.extensions = error.originalError.toJSON();
               formattedError.extensions.stacktrace = error.originalError.stack;
+              return formattedError;
+            } else if (
+              error instanceof GraphQLError &&
+              isGraphQLBadRequest(error)
+            ) {
+              const err = mapAnyError(error);
+              // @ts-expect-error allow assign
+              formattedError.extensions = err.toJSON();
+              formattedError.extensions.stacktrace = err.stack;
               return formattedError;
             } else {
               // @ts-expect-error allow assign

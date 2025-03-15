@@ -7,7 +7,7 @@ import {
   SYNCED_MIN_WIDTH,
 } from '@blocksuite/affine-block-embed';
 import {
-  type EdgelessFrameManager,
+  EdgelessFrameManagerIdentifier,
   type FrameOverlay,
   isFrameBlock,
 } from '@blocksuite/affine-block-frame';
@@ -45,7 +45,6 @@ import {
   type CursorType,
   getTopElements,
   GfxControllerIdentifier,
-  GfxExtensionIdentifier,
   type GfxModel,
   type GfxPrimitiveElementModel,
 } from '@blocksuite/block-std/gfx';
@@ -1096,9 +1095,7 @@ export class EdgelessSelectedRectWidget extends WidgetComponent<
   }
 
   #adjustFrame(frame: FrameBlockModel, bound: Bound) {
-    const frameManager = this.std.get(
-      GfxExtensionIdentifier('frame-manager')
-    ) as EdgelessFrameManager;
+    const frameManager = this.std.get(EdgelessFrameManagerIdentifier);
 
     const oldChildren = frameManager.getChildElementsInFrame(frame);
 

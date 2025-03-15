@@ -2,15 +2,22 @@ import EventEmitter2 from 'eventemitter2';
 
 import type { AwarenessStorage } from './awareness';
 import type { BlobStorage } from './blob';
+import type { BlobSyncStorage } from './blob-sync';
 import type { DocStorage } from './doc';
 import type { DocSyncStorage } from './doc-sync';
 import { DummyAwarenessStorage } from './dummy/awareness';
 import { DummyBlobStorage } from './dummy/blob';
+import { DummyBlobSyncStorage } from './dummy/blob-sync';
 import { DummyDocStorage } from './dummy/doc';
 import { DummyDocSyncStorage } from './dummy/doc-sync';
 import type { StorageType } from './storage';
 
-type Storages = DocStorage | BlobStorage | DocSyncStorage | AwarenessStorage;
+type Storages =
+  | DocStorage
+  | BlobStorage
+  | BlobSyncStorage
+  | DocSyncStorage
+  | AwarenessStorage;
 
 export type SpaceStorageOptions = {
   [K in StorageType]?: Storages & { storageType: K };
@@ -27,8 +34,9 @@ export class SpaceStorage {
     this.storages = {
       awareness: storages.awareness ?? new DummyAwarenessStorage(),
       blob: storages.blob ?? new DummyBlobStorage(),
+      blobSync: storages.blobSync ?? new DummyBlobSyncStorage(),
       doc: storages.doc ?? new DummyDocStorage(),
-      ['docSync']: storages['docSync'] ?? new DummyDocSyncStorage(),
+      docSync: storages.docSync ?? new DummyDocSyncStorage(),
     };
   }
 
@@ -70,6 +78,7 @@ export class SpaceStorage {
 
 export * from './awareness';
 export * from './blob';
+export * from './blob-sync';
 export * from './doc';
 export * from './doc-sync';
 export * from './errors';

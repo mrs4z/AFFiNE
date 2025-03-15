@@ -13,7 +13,7 @@ import {
   readNotification,
   TestingApp,
 } from '../../../__tests__/utils';
-import { Models, NotificationType } from '../../../models';
+import { DocMode, Models, NotificationType } from '../../../models';
 import { MentionNotificationBodyType, NotificationObjectType } from '../types';
 
 let app: TestingApp;
@@ -50,6 +50,7 @@ test('should mention user in a doc', async t => {
       id: 'doc-id-1',
       title: 'doc-title-1',
       blockId: 'block-id-1',
+      mode: DocMode.page,
     },
   });
   t.truthy(mentionId);
@@ -61,6 +62,7 @@ test('should mention user in a doc', async t => {
       id: 'doc-id-2',
       title: 'doc-title-2',
       elementId: 'element-id-2',
+      mode: DocMode.edgeless,
     },
   });
 
@@ -82,6 +84,7 @@ test('should mention user in a doc', async t => {
   t.is(body.doc.id, 'doc-id-1');
   t.is(body.doc.title, 'doc-title-1');
   t.is(body.doc.blockId, 'block-id-1');
+  t.is(body.doc.mode, DocMode.page);
   t.is(body.createdByUser!.id, owner.id);
   t.is(body.createdByUser!.name, owner.name);
   t.is(body.workspace!.id, workspace.id);
@@ -97,10 +100,64 @@ test('should mention user in a doc', async t => {
   t.is(body2.doc.id, 'doc-id-2');
   t.is(body2.doc.title, 'doc-title-2');
   t.is(body2.doc.elementId, 'element-id-2');
+  t.is(body2.doc.mode, DocMode.edgeless);
   t.is(body2.createdByUser!.id, owner.id);
   t.is(body2.workspace!.id, workspace.id);
   t.is(body2.workspace!.name, 'test-workspace-name');
   t.truthy(body2.workspace!.avatarUrl);
+});
+
+test('should mention doc mode support string value', async t => {
+  const member = await app.signup();
+  const owner = await app.signup();
+
+  await app.switchUser(owner);
+  const workspace = await createWorkspace(app);
+  await models.workspace.update(workspace.id, {
+    name: 'test-workspace-name',
+    avatarKey: 'test-avatar-key',
+  });
+  const inviteId = await inviteUser(app, workspace.id, member.email);
+  await app.switchUser(member);
+  await acceptInviteById(app, workspace.id, inviteId);
+
+  await app.switchUser(owner);
+  const mentionId = await mentionUser(app, {
+    userId: member.id,
+    workspaceId: workspace.id,
+    doc: {
+      id: 'doc-id-1',
+      title: 'doc-title-1',
+      blockId: 'block-id-1',
+      mode: 'page' as DocMode,
+    },
+  });
+  t.truthy(mentionId);
+
+  await app.switchUser(member);
+  const result = await listNotifications(app, {
+    first: 10,
+    offset: 0,
+  });
+  t.is(result.totalCount, 1);
+  const notifications = result.edges.map(edge => edge.node);
+  t.is(notifications.length, 1);
+
+  const notification = notifications[0] as NotificationObjectType;
+  t.is(notification.read, false);
+  t.truthy(notification.createdAt);
+  t.truthy(notification.updatedAt);
+  const body = notification.body as MentionNotificationBodyType;
+  t.is(body.workspace!.id, workspace.id);
+  t.is(body.doc.id, 'doc-id-1');
+  t.is(body.doc.title, 'doc-title-1');
+  t.is(body.doc.blockId, 'block-id-1');
+  t.is(body.doc.mode, DocMode.page);
+  t.is(body.createdByUser!.id, owner.id);
+  t.is(body.createdByUser!.name, owner.name);
+  t.is(body.workspace!.id, workspace.id);
+  t.is(body.workspace!.name, 'test-workspace-name');
+  t.truthy(body.workspace!.avatarUrl);
 });
 
 test('should throw error when mention user has no Doc.Read role', async t => {
@@ -120,6 +177,7 @@ test('should throw error when mention user has no Doc.Read role', async t => {
         id: docId,
         title: 'doc-title-1',
         blockId: 'block-id-1',
+        mode: DocMode.page,
       },
     }),
     {
@@ -141,6 +199,7 @@ test('should throw error when mention a not exists user', async t => {
         id: docId,
         title: 'doc-title-1',
         blockId: 'block-id-1',
+        mode: DocMode.page,
       },
     }),
     {
@@ -161,6 +220,7 @@ test('should not mention user oneself', async t => {
         id: 'doc-id-1',
         title: 'doc-title-1',
         blockId: 'block-id-1',
+        mode: DocMode.page,
       },
     }),
     {
@@ -187,6 +247,7 @@ test('should mark notification as read', async t => {
       id: 'doc-id-1',
       title: 'doc-title-1',
       blockId: 'block-id-1',
+      mode: DocMode.page,
     },
   });
   t.truthy(mentionId);
@@ -229,6 +290,7 @@ test('should throw error when read the other user notification', async t => {
       id: 'doc-id-1',
       title: 'doc-title-1',
       blockId: 'block-id-1',
+      mode: DocMode.page,
     },
   });
   t.truthy(mentionId);
@@ -252,7 +314,7 @@ test('should throw error when read the other user notification', async t => {
   });
 });
 
-test.skip('should throw error when mention call with invalid params', async t => {
+test('should throw error when mention call with invalid params', async t => {
   const owner = await app.signup();
   await app.switchUser(owner);
   await t.throwsAsync(
@@ -261,12 +323,34 @@ test.skip('should throw error when mention call with invalid params', async t =>
       workspaceId: '',
       doc: {
         id: '',
-        title: '',
+        title: 'doc-title-1'.repeat(100),
         blockId: '',
+        mode: DocMode.page,
       },
     }),
     {
-      message: 'Mention user not found.',
+      message: /Validation error/,
+    }
+  );
+});
+
+test('should throw error when mention mode value is invalid', async t => {
+  const owner = await app.signup();
+  await app.switchUser(owner);
+  await t.throwsAsync(
+    mentionUser(app, {
+      userId: randomUUID(),
+      workspaceId: randomUUID(),
+      doc: {
+        id: randomUUID(),
+        title: 'doc-title-1',
+        blockId: 'block-id-1',
+        mode: 'invalid-mode' as DocMode,
+      },
+    }),
+    {
+      message:
+        'Variable "$input" got invalid value "invalid-mode" at "input.doc.mode"; Value "invalid-mode" does not exist in "DocMode" enum.',
     }
   );
 });
@@ -311,6 +395,7 @@ test('should list and count notifications', async t => {
       id: 'doc-id-1',
       title: 'doc-title-1',
       blockId: 'block-id-1',
+      mode: DocMode.page,
     },
   });
   await mentionUser(app, {
@@ -320,6 +405,7 @@ test('should list and count notifications', async t => {
       id: 'doc-id-2',
       title: 'doc-title-2',
       blockId: 'block-id-2',
+      mode: DocMode.page,
     },
   });
   await mentionUser(app, {
@@ -329,6 +415,7 @@ test('should list and count notifications', async t => {
       id: 'doc-id-3',
       title: 'doc-title-3',
       blockId: 'block-id-3',
+      mode: DocMode.page,
     },
   });
   // mention user in another workspace
@@ -339,6 +426,7 @@ test('should list and count notifications', async t => {
       id: 'doc-id-4',
       title: 'doc-title-4',
       blockId: 'block-id-4',
+      mode: DocMode.page,
     },
   });
 
@@ -469,6 +557,7 @@ test('should list and count notifications', async t => {
         id: 'doc-id-5',
         title: 'doc-title-5',
         blockId: 'block-id-5',
+        mode: DocMode.page,
       },
     });
 

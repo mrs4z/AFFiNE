@@ -599,4 +599,48 @@ impl DocStoragePool {
   pub async fn clear_clocks(&self, universal_id: String) -> Result<()> {
     Ok(self.inner.get(universal_id).await?.clear_clocks().await?)
   }
+
+  pub async fn set_blob_uploaded_at(
+    &self,
+    universal_id: String,
+    peer: String,
+    blob_id: String,
+    uploaded_at: Option<i64>,
+  ) -> Result<()> {
+    Ok(
+      self
+        .inner
+        .get(universal_id)
+        .await?
+        .set_blob_uploaded_at(
+          peer,
+          blob_id,
+          uploaded_at
+            .map(|t| {
+              chrono::DateTime::<chrono::Utc>::from_timestamp_millis(t)
+                .ok_or(UniffiError::TimestampDecodingError)
+                .map(|t| t.naive_utc())
+            })
+            .transpose()?,
+        )
+        .await?,
+    )
+  }
+
+  pub async fn get_blob_uploaded_at(
+    &self,
+    universal_id: String,
+    peer: String,
+    blob_id: String,
+  ) -> Result<Option<i64>> {
+    Ok(
+      self
+        .inner
+        .get(universal_id)
+        .await?
+        .get_blob_uploaded_at(peer, blob_id)
+        .await?
+        .map(|t| t.and_utc().timestamp_millis()),
+    )
+  }
 }

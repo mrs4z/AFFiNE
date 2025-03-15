@@ -10,7 +10,10 @@ import { GraphQLJSONObject } from 'graphql-scalars';
 
 import { Paginated } from '../../base';
 import {
+  DocMode,
   InvitationNotificationBody,
+  MentionDoc,
+  MentionDocCreate,
   Notification,
   NotificationLevel,
   NotificationType,
@@ -26,6 +29,11 @@ registerEnumType(NotificationLevel, {
 registerEnumType(NotificationType, {
   name: 'NotificationType',
   description: 'Notification type',
+});
+
+registerEnumType(DocMode, {
+  name: 'DocMode',
+  description: 'Doc mode',
 });
 
 @ObjectType()
@@ -64,12 +72,15 @@ export abstract class BaseNotificationBodyType {
 }
 
 @ObjectType()
-export class MentionDocType {
+export class MentionDocType implements MentionDoc {
   @Field(() => String)
   id!: string;
 
   @Field(() => String)
   title!: string;
+
+  @Field(() => DocMode)
+  mode!: DocMode;
 
   @Field(() => String, {
     nullable: true,
@@ -163,12 +174,15 @@ export class PaginatedNotificationObjectType extends Paginated(
 ) {}
 
 @InputType()
-export class MentionDocInput {
+export class MentionDocInput implements MentionDocCreate {
   @Field(() => String)
   id!: string;
 
   @Field(() => String)
   title!: string;
+
+  @Field(() => DocMode)
+  mode!: DocMode;
 
   @Field(() => String, {
     description: 'The block id in the doc',

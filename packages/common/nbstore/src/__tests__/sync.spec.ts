@@ -5,6 +5,7 @@ import { Doc as YDoc, encodeStateAsUpdate } from 'yjs';
 
 import {
   IndexedDBBlobStorage,
+  IndexedDBBlobSyncStorage,
   IndexedDBDocStorage,
   IndexedDBDocSyncStorage,
 } from '../impls/idb';
@@ -138,8 +139,15 @@ test('blob', async () => {
     type: 'workspace',
   });
 
+  const blobSync = new IndexedDBBlobSyncStorage({
+    id: 'ws1',
+    flavour: 'a',
+    type: 'workspace',
+  });
+
   const peerA = new SpaceStorage({
     blob: a,
+    blobSync,
   });
   const peerB = new SpaceStorage({
     blob: b,

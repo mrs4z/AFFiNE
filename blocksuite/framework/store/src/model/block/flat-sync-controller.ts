@@ -1,7 +1,7 @@
 import { BlockSuiteError, ErrorCode } from '@blocksuite/global/exceptions';
 import * as Y from 'yjs';
 
-import { ReactiveFlatYMap } from '../../reactive/flat-native-y.js';
+import { ReactiveFlatYMap } from '../../reactive/flat-native-y/index.js';
 import type { Schema } from '../../schema/schema.js';
 import type { Store } from '../store/store.js';
 import { BlockModel } from './block-model.js';
